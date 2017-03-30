@@ -1,0 +1,237 @@
+#include <atelier_usb_plugin.h>
+# include <atelier_plugin/atelier_plugin_manager.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sstream>
+#include <pthread.h>
+#include <sys/time.h>
+
+#define VID 0x0471
+#define PID 0x0999
+int Trans_Flag =0;
+
+using namespace std;
+
+namespace atelier_plugin {
+	AtelierPluginManager* plugin_manager = AtelierPluginManager::GetInstance();
+	libusb_context *ctx_static=NULL;
+	libusb_device_handle *dev_handle_static=init_handle(PID,VID,ctx_static);//a device handle
+	static int num=0;
+	pthread_mutex_t mut;
+AtelierPlugin* CreateTestPlugin() {
+  return new TestPlugin();
+}
+
+TestPlugin::~TestPlugin() {
+
+}
+
+void TestPlugin::Initialize() {
+  logAtelier("TestPlugin::Initialized !!!");
+}
+libusb_device_handle * init_handle(int vvid,int ppid,libusb_context *ctx ){
+	libusb_device **devs=NULL;          //pointer to pointer of device, used to retrieve a list of devices
+	libusb_device_handle *dev_handle=NULL ;// dev_handle
+	ssize_t cnt;                   //holding number of devices in list
+	int r; //for return values  
+	r = libusb_init(&ctx);
+    if(r < 0) {  
+       logAtelier("libusb_init初始化错误\n"); //there was an error  
+       return NULL;   
+    }  
+    libusb_set_debug(ctx, (int)LIBUSB_LOG_LEVEL_INFO); //set verbosity level to 3, as suggested in the documentation  
+  
+    cnt = libusb_get_device_list(ctx, &devs); //get the list of devices  
+    if(cnt < 0) {  
+        logAtelier("libusb_get_device_lis获取设备错误\n"); //there was an error  
+        return NULL;  
+    }  
+    logAtelier("共有%d个设备.\n", cnt);
+	
+    dev_handle = libusb_open_device_with_vid_pid(ctx, VID, PID); 
+    
+    if(dev_handle == NULL){
+			logAtelier("libusb_open_device_with_vid_pid无法打开设备\n");  			
+			return NULL;
+   	}else{
+		    logAtelier("libusb_open_device_with_vid_pid已经打开设备\n");  			
+	}
+        
+    libusb_free_device_list(devs, 1); //free the list, unref the devices in it
+  
+    if(libusb_kernel_driver_active(dev_handle, 0) == 1) { //find out if kernel driver is attached
+        printf("Kernel Driver Active\n");
+        if(libusb_detach_kernel_driver(dev_handle, 0) == 0) //detach it
+            printf("Kernel Driver Detached!\n");
+    } 
+    
+    r = libusb_claim_interface(dev_handle, 0); //claim interface 0 (the first) of device (mine had jsut 1)  
+    if(r < 0) {  
+        logAtelier("libusb_claim_interface失败\n");
+        return NULL; 
+	}
+    return dev_handle;		
+}
+
+
+void closeAndExit(libusb_device_handle *dev_handle,libusb_context *ctx){
+	if(dev_handle!=NULL)
+	libusb_close(dev_handle); //close the device we opened  
+    if(ctx!=NULL)
+    libusb_exit(ctx); //needs to be called to end the 	
+}
+
+void * readMusicAndSend(void *hd){//发送music
+	int *size=NULL;//NULL
+	int rec;
+	int len=320; 
+	unsigned char  buffer[320];
+	FILE * fp=fopen("//data//music.bin","rb+");
+	struct timeval t_start,t_end;//时间		
+	if(fp==NULL){
+		printf("file is not open");
+		logAtelier("文件打开失败");
+        Trans_Flag = 1;
+		return NULL;
+        
+	    }
+	for(int i=0;;i++)
+	{
+		//fseek(fp,320*i,SEEK_SET);
+		//gettimeofday(&t_start,NULL);//开始时间
+		
+		if(fread(buffer,32,10,fp)!=10)
+		{
+			fseek(fp,0,SEEK_SET);//定位到开头
+			//break;
+		}
+		else
+		{
+			pthread_mutex_lock(&mut);	
+			if(0 == Trans_Flag )
+			{
+				if(buffer[319] != 0)
+				{
+					rec = libusb_bulk_transfer((libusb_device_handle *)hd, 2,buffer,len, size, 0);
+					memset(buffer,0,320);
+				}
+			}
+		    Trans_Flag = 1;
+			pthread_mutex_unlock(&mut);
+			/*if(rec==0)
+			{
+				std::stringstream sst;
+				fpos_t pos;
+				fgetpos(fp,&pos);
+				sst<<"pos :"<<pos<<"  ";
+				for(int j=0;j<320;j++){
+					sst<<(j+1)<<":"<<(int)(buffer[j])<<" ";
+				}
+				sst<<"\n";
+				logAtelier(sst.str().c_str());
+				logAtelier("数据已经发送");
+		    	gettimeofday(&t_end,NULL);//结束时间
+				usleep(20000-(t_end.tv_usec-t_start.tv_usec));
+			}*/
+		}	
+	}
+	if(fp!=NULL){
+		fclose(fp);
+	}
+	return NULL;
+}
+
+
+void * recvMusicAndStore(void * hd){
+	int *size=NULL;	
+	unsigned char revbulk[320]={0};
+	int len=320;
+	int rec;
+	struct timeval t_start,t_end;//时间	
+	while(Trans_Flag)
+	{
+		//gettimeofday(&t_start,NULL);
+		pthread_mutex_lock(&mut);
+		if(Trans_Flag = 1)
+		{
+			rec=libusb_bulk_transfer((libusb_device_handle *)hd, 0x81, revbulk, len, size, 0);//type=0批量传输，type=1中断传输
+		}
+		Trans_Flag = 0;
+		pthread_mutex_unlock(&mut);
+		if(rec==0)
+		{//接收成功
+			/*std::stringstream sst;
+			for(int j=0;j<320;j++){
+				sst<<(j+1)<<":"<<(int)(revbulk[j])<<" ";
+			}
+			sst<<"\n";
+			logAtelier(sst.str().c_str());			
+			gettimeofday(&t_end,NULL);
+			usleep(20000-(t_end.tv_usec-t_start.tv_usec));*/
+//send to audioMC
+		}
+		else
+		{
+			logAtelier("接收失败");			
+			//break;
+		}
+		memset(revbulk,0,320);
+	}
+	return 0;	
+}
+ int send_bulk(libusb_device_handle *hd,unsigned char * arr)
+{
+	int *size=NULL;//NULL
+	int rec;
+	int len=230; 
+	rec = libusb_bulk_transfer(hd, 2,arr,len, size, 0);   //type :1 为中断，2 为批量
+	if(rec==0){
+		return 1;//发送成功
+	}
+  return 0; 
+}
+ 	
+ int rev_bulk(libusb_device_handle *hd){
+	int *size=NULL;	
+	unsigned char revbulk[1024]={0};
+	int len=230;
+	int rec=libusb_bulk_transfer(hd, 0x81, revbulk, len, size, 0);//type=0批量传输，type=1中断传输
+	if(rec==0){//接受成功
+		
+	}
+	return 0;
+ }
+
+void TestPlugin::Execute(std::string action, std::string callback_id, std::string args) {
+  logAtelier("TestPlugin::Executexxxxxxxxxxxxx !!!  action: %s",action.c_str());
+  logAtelier("TestPlugin::Executexxxxxxxxxxxxx !!!  action: %s",args.c_str());
+   if(action=="sendMusic"){
+	   while(num<5){
+		if(dev_handle_static==NULL){
+		dev_handle_static=init_handle(PID,VID,ctx_static);//打开设备，获取dev_handle
+		}else{
+		break;
+		}
+		num++;
+	    }  	
+		num=0;//归0	
+		pthread_mutex_init(&mut,NULL);//初始化锁
+		if(dev_handle_static!=NULL){
+		pthread_t tid;
+		pthread_t tid1;
+		pthread_create(&tid, NULL,readMusicAndSend, dev_handle_static);
+		pthread_create(&tid1, NULL,recvMusicAndStore, dev_handle_static);
+		plugin_manager->PostMsgToJs(callback_id, true, 1,"excuteMusic", false);
+		}
+		plugin_manager->PostMsgToJs(callback_id, true, 1,"test", false);
+	}
+	if(action=="closeUSB"){
+		closeAndExit(dev_handle_static,ctx_static);//关闭
+		plugin_manager->PostMsgToJs(callback_id, true, 1,"关闭USB成功", false);
+	}
+   if(action=="interrupt_rev"){		
+	    plugin_manager->PostMsgToJs(callback_id, true, 1,"打开设备失败", false); 	
+    }	
+}
+}//namespace atelier_plugin

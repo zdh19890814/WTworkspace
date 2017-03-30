@@ -1,0 +1,56 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: libusb_dll - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating command line "rc.exe /l 0x409 /fo"../Win32/Debug/dll/libusb-1.0.res" /i "\Users\baoli\Desktop\libusb-1.0.9\libusb-1.0.9\libusb" /d "_DEBUG" "D:\Users\baoli\Desktop\libusb-1.0.9\libusb-1.0.9\libusb\libusb-1.0.rc"" 
+Creating temporary file "C:\Users\baoli\AppData\Local\Temp\RSP9158.tmp" with contents
+[
+/nologo /MDd /W3 /Gm /GX /ZI /Od /I "." /I "../libusb" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_UNICODE" /D "UNICODE" /D "_USRDLL" /U "_MBCS" /FR"../Win32/Debug/dll/" /Fo"../Win32/Debug/dll/" /Fd"../Win32/Debug/dll/" /FD /EHsc /c 
+"D:\Users\baoli\Desktop\libusb-1.0.9\libusb-1.0.9\libusb\core.c"
+"D:\Users\baoli\Desktop\libusb-1.0.9\libusb-1.0.9\libusb\descriptor.c"
+"D:\Users\baoli\Desktop\libusb-1.0.9\libusb-1.0.9\libusb\io.c"
+"D:\Users\baoli\Desktop\libusb-1.0.9\libusb-1.0.9\libusb\os\poll_windows.c"
+"D:\Users\baoli\Desktop\libusb-1.0.9\libusb-1.0.9\libusb\sync.c"
+"D:\Users\baoli\Desktop\libusb-1.0.9\libusb-1.0.9\libusb\os\threads_windows.c"
+"D:\Users\baoli\Desktop\libusb-1.0.9\libusb-1.0.9\libusb\os\windows_usb.c"
+]
+Creating command line "cl.exe @C:\Users\baoli\AppData\Local\Temp\RSP9158.tmp" 
+Creating temporary file "C:\Users\baoli\AppData\Local\Temp\RSP9159.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib shell32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /incremental:yes /pdb:"../Win32/Debug/dll/libusb-1.0.pdb" /debug /machine:I386 /def:"..\libusb\libusb-1.0.def" /out:"Win32/Debug/dll/libusb-1.0.dll" /implib:"../Win32/Debug/dll/libusb-1.0.lib" 
+"\Users\baoli\Desktop\libusb-1.0.9\libusb-1.0.9\Win32\Debug\dll\core.obj"
+"\Users\baoli\Desktop\libusb-1.0.9\libusb-1.0.9\Win32\Debug\dll\descriptor.obj"
+"\Users\baoli\Desktop\libusb-1.0.9\libusb-1.0.9\Win32\Debug\dll\io.obj"
+"\Users\baoli\Desktop\libusb-1.0.9\libusb-1.0.9\Win32\Debug\dll\poll_windows.obj"
+"\Users\baoli\Desktop\libusb-1.0.9\libusb-1.0.9\Win32\Debug\dll\sync.obj"
+"\Users\baoli\Desktop\libusb-1.0.9\libusb-1.0.9\Win32\Debug\dll\threads_windows.obj"
+"\Users\baoli\Desktop\libusb-1.0.9\libusb-1.0.9\Win32\Debug\dll\windows_usb.obj"
+"\Users\baoli\Desktop\libusb-1.0.9\libusb-1.0.9\Win32\Debug\dll\libusb-1.0.res"
+"\Users\baoli\Desktop\libusb-1.0.9\libusb-1.0.9\Win32\Debug\dll\listdevs.obj"
+]
+Creating command line "link.exe @C:\Users\baoli\AppData\Local\Temp\RSP9159.tmp"
+<h3>Output Window</h3>
+Compiling resources...
+Compiling...
+core.c
+descriptor.c
+io.c
+poll_windows.c
+sync.c
+threads_windows.c
+windows_usb.c
+Generating Code...
+Linking...
+   Creating library ../Win32/Debug/dll/libusb-1.0.lib and object ../Win32/Debug/dll/libusb-1.0.exp
+
+
+
+<h3>Results</h3>
+libusb-1.0.dll - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

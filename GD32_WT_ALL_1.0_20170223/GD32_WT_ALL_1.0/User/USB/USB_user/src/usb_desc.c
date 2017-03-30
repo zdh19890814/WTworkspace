@@ -65,13 +65,13 @@ const uint8_t CustomHID_ConfigDescriptor[CUSTOMHID_SIZ_CONFIG_DESC] =
                                  the configuration*/
     0xC0,         /* bmAttributes: Bus powered */
                   /*Bus powered: 7th bit, Self Powered: 6th bit, Remote wakeup: 5th bit, reserved: 4..0 bits */
-    0x32,         // MaxPower 500 mA: 从总线获得最大流量
+    0x32,         // MaxPower 500 mA: 从总线获得最大流量  
     
     
     /************** Descriptor of Custom HID interface ****************/
     /* 09 */
     0x09,         /* bLength: Interface Descriptor size */
-    USB_INTERFACE_DESCRIPTOR_TYPE,//接口描述符类型的编码
+    USB_INTERFACE_DESCRIPTOR_TYPE,//接口描述符类型的编码 
     0x00,         /* bInterfaceNumber: Number of Interface */
     0x00,         /* bAlternateSetting: Alternate setting */
     0x04,         /* bNumEndpoints */

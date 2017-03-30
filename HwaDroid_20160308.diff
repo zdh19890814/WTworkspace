@@ -1,0 +1,2374 @@
+Index: build/target/product/base.mk
+===================================================================
+--- build/target/product/base.mk	(版本 8)
++++ build/target/product/base.mk	(版本 11)
+@@ -59,8 +59,10 @@
+     libnetutils \
+     libpac \
+     libreference-ril \
++    libreference-ril_hwa \
+     libreverbwrapper \
+     libril \
++    libril_hwa \
+     librtp_jni \
+     libsensorservice \
+     libskia \
+Index: build/target/product/telephony.mk
+===================================================================
+--- build/target/product/telephony.mk	(版本 8)
++++ build/target/product/telephony.mk	(版本 11)
+@@ -20,6 +20,7 @@
+ # delete module "Mms" since we use Leadcore MMS defined in "device/leadcore/common/device.mk"
+ PRODUCT_PACKAGES := \
+     Dialer \
+-    rild
++    rild \
++    rild_hwa
+ 
+ PRODUCT_COPY_FILES := \
+Index: device/leadcore/common/device.mk
+===================================================================
+--- device/leadcore/common/device.mk	(版本 8)
++++ device/leadcore/common/device.mk	(版本 11)
+@@ -142,6 +142,12 @@
+ # make module: radio_config
+ PRODUCT_PACKAGES += radio_config
+ 
++# make module: MUX001
++PRODUCT_PACKAGES += MUX001
++
++# make module: AndFTP
++#PRODUCT_PACKAGES += AndFTP
++
+ # add mali module
+ ifeq ($(BOARD_USES_MALI400), true)
+ $(warning board use mali400)
+@@ -289,7 +295,7 @@
+ PRODUCT_PROPERTY_OVERRIDES += persist.sys.install.max.lc.log=/data/local/log,I1,10,8192,I2,10,8192,I3,10,8192,I4,100,8192,I5,10,8192,I6,10,8192
+ 
+ # property used by LC_ASSISTANT & radio_config
+-PRODUCT_PROPERTY_OVERRIDES += persist.sys.lc.msms=221
++PRODUCT_PROPERTY_OVERRIDES += persist.sys.lc.msms=1111
+ PRODUCT_PROPERTY_OVERRIDES += persist.sys.lc.standby.rat=7,3
+ PRODUCT_PROPERTY_OVERRIDES += persist.sys.lc.dual2single=1
+ PRODUCT_PROPERTY_OVERRIDES += persist.sys.lc.dynamic.rat=1
+@@ -332,6 +338,9 @@
+ # set vsync property
+ PRODUCT_PROPERTY_OVERRIDES += debug.hwc.fakevsync=0
+ PRODUCT_PROPERTY_OVERRIDES += debug.hwc.logvsync=0
++#added by tangtanglin on 2016.01.10 begin
++PRODUCT_PROPERTY_OVERRIDES += debug.read.cart.status=0
++#added by tangtanglin on 2016.01.10 end
+ 
+ #enable GPU overlay
+ ifeq ($(BUILD_MASS_PRODUCTION),true)
+Index: device/leadcore/common/init.rc
+===================================================================
+--- device/leadcore/common/init.rc	(版本 8)
++++ device/leadcore/common/init.rc	(版本 11)
+@@ -719,7 +719,21 @@
+ 	class main
+ 	user root
+ 	group radio cache inet misc
++#add by ttl on 2016.01.15 begin
++	disabled
++#add by ttl on 2016.01.15 end
+ 
++#add by wjf 2015.11.24 begin
++service MUX001 /system/bin/MUX001
++	class main
++	user root
++	group radio cache inet misc
++#	group log cache inet misc
++#add by ttl on 2016.01.05 begin
++	disabled
++#add by ttl on 2016.01.05 end
++#add by wjf 2015.11.24 end
++
+ service radio_config /system/bin/radio_config
+ 	class main
+ 	group radio
+@@ -732,7 +746,7 @@
+ 	group radio cache inet misc audio
+ 	disabled
+ 
+-service rild1  /system/bin/rild -n 1
++service rild1  /system/bin/rild_hwa -n 1
+ 	class main
+ 	socket rild1 stream 660 root radio
+ 	socket rild-debug stream 660 radio system
+@@ -788,6 +802,9 @@
+     group radio cache inet misc
+     oneshot
+     class mla
++#add by ttl on 2016.01.05 begin
++	disabled
++#add by ttl on 2016.01.05 end
+ 
+ service lc-oms-mla1 /system/bin/lc-oms-mla -p /dev/ttyGS1 -m /dev/ttylogdata1 -a /dev/ttylogcmd1 &
+     class post-zygote_services
+@@ -795,6 +812,9 @@
+     group radio cache inet misc
+     oneshot
+     class mla
++#add by ttl on 2016.01.05 begin
++	disabled
++#add by ttl on 2016.01.05 end
+ 
+ service lc-oms-mla2 /system/bin/lc-oms-mla -p /dev/ttyGS2 -m /dev/ttylogdata2 -a /dev/ttylogcmd2 &
+     class post-zygote_services
+@@ -802,20 +822,29 @@
+     group radio cache inet misc
+     oneshot
+     class mla
++#add by ttl on 2016.01.05 begin
++	disabled
++#add by ttl on 2016.01.05 end
+ 
+-service lc-oms-mla3 /system/bin/lc-oms-mla -p /dev/ttyGS3 -m /dev/ttylogdata3 -a /dev/ttylogcmd3 &
++service lc-oms-mla3 /system/bin/lc-oms-mla -p /dev/ttyGS3 -m /dev/ttyS0 -a /dev/ttylogcmd3 &
+     class post-zygote_services
+     user root
+     group radio cache inet misc
+     oneshot
+     class mla
++#add by ttl on 2016.01.05 begin
++	disabled
++#add by ttl on 2016.01.05 end
+ 
+-service lc-oms-mla4 /system/bin/lc-oms-mla -p /dev/ttyGS4 -m /dev/ttylogdata4 -a /dev/ttylogcmd4 &
++service lc-oms-mla4 /system/bin/lc-oms-mla -p /dev/ttyGS4 -m /dev/ttyS1 -a /dev/ttylogcmd4 &
+     class post-zygote_services
+     user root
+     group radio cache inet misc
+     oneshot
+     class mla
++#add by ttl on 2016.01.05 begin
++	disabled
++#add by ttl on 2016.01.05 end
+ 
+ service lc-oms-mla5 /system/bin/lc-oms-mla -p /dev/ttyGS5 -m /dev/ttylogdata5 -a /dev/ttylogcmd5 &
+     class post-zygote_services
+@@ -823,6 +852,9 @@
+     group radio cache inet misc
+     oneshot
+     class mla
++#add by ttl on 2016.01.05 begin
++	disabled
++#add by ttl on 2016.01.05 end
+ #//
+ 
+ service lc-oms-amt /system/bin/lc-oms-amt
+Index: device/leadcore/lc1860evb2/init.lc1860.usb.rc
+===================================================================
+--- device/leadcore/lc1860evb2/init.lc1860.usb.rc	(版本 8)
++++ device/leadcore/lc1860evb2/init.lc1860.usb.rc	(版本 11)
+@@ -213,6 +213,17 @@
+     setprop sys.usb.state $sys.usb.config
+     setprop sys.usb.charging yes
+ 
++#added by tangtanglin on 2016.01.10 begin
++on property:sys.usb.config=debug_tt
++    write /sys/class/android_usb/android0/enable 0
++    write /sys/class/android_usb/android0/idVendor 18D1
++    write /sys/class/android_usb/android0/idProduct 18BD
++    write /sys/class/android_usb/android0/functions serial
++    write /sys/class/android_usb/android0/f_serial/serial_port_num 6
++    write /sys/class/android_usb/android0/enable 1
++    setprop sys.usb.state $sys.usb.config
++#added by tangtanglin on 2016.01.10 end    
++
+ on property:sys.usb.charging=yes
+     write /sys/devices/platform/comip-u2d/charge_mode 1
+ 
+Index: frameworks/base/telephony/java/android/telephony/TelephonyManager.java
+===================================================================
+--- frameworks/base/telephony/java/android/telephony/TelephonyManager.java	(版本 8)
++++ frameworks/base/telephony/java/android/telephony/TelephonyManager.java	(版本 11)
+@@ -2595,7 +2595,16 @@
+         return TelephonyMSMSConfig.getMSMSCommunicationCount();
+     }
+ 
++	/* BEGIN: Added for PN:s_project double modem single standby */
+     /**
++     * Returns the device of communication count
++     */
++    public static int getModemType() {
++        return TelephonyMSMSConfig.getMSMSModemType();
++    }
++    /* END:  Added for PN:s_project double modem single standby */
++
++    /**
+      * Whether the device is support the multi card version turn single card version
+      */
+     public static boolean isSupportMulti2Single() {
+Index: frameworks/base/core/config/leadcore/util/TelephonyMSMSConfig.java
+===================================================================
+--- frameworks/base/core/config/leadcore/util/TelephonyMSMSConfig.java	(版本 8)
++++ frameworks/base/core/config/leadcore/util/TelephonyMSMSConfig.java	(版本 11)
+@@ -12,6 +12,10 @@
+     private static int MSMS_CONFIG_COMMUNICATION_COUNT = -1;
+     private static int MSMS_CONFIG_DUAL_TO_SINGLE = -1;
+ 
++    /* BEGIN: Added for PN:s_project double modem single standby */    
++    private static int MSMS_CONFIG_MODEM_TYPE = -1;
++    /* END:  Added for PN:s_project double modem single standby */
++
+     private static int MSMS_MASTER_CARD = -1;
+     public static final int MASTER_CARD_10 = 10;
+     public static final int MASTER_CARD_12 = 12;
+@@ -18,7 +22,9 @@
+     public static final int MASTER_CARD_20 = 20;
+     public static final int MASTER_CARD_21 = 21;
+ 
+-    private static final String MSMS_CONFIG_DEFAULT_PROPERTY = "111";
++    /* BEGIN: Modified for PN:s_project double modem single standby */
++    private static final String MSMS_CONFIG_DEFAULT_PROPERTY = "1110";  //"111"
++    /* END:   Modified for PN:s_project double modem single standby */
+     private static final String MSMS_CONFIG_PROPERTY = "ro.lc.msms";
+     private static final String MSMS_MASTER_CARD_PROPERTY = "persist.sys.lc.master.card";
+     private static final String PROPERTY_SETTING_MASTER_CARD_MODE = "sys.lc.setting.master.card.mode";
+@@ -53,6 +59,18 @@
+         return MSMS_CONFIG_COMMUNICATION_COUNT;
+     }
+ 
++	/* BEGIN: Added for PN:s_project double modem single standby */
++    public static int getMSMSModemType() {
++        if (MSMS_CONFIG_MODEM_TYPE < 0) {
++            String property = SystemProperties.get(MSMS_CONFIG_PROPERTY, MSMS_CONFIG_DEFAULT_PROPERTY);
++            MSMS_CONFIG_MODEM_TYPE = Integer.parseInt(property.substring(3, 4));
++            Log.d(TAG, "MSMS_CONFIG_MODEM_TYPE = " + MSMS_CONFIG_MODEM_TYPE);
++        }
++
++        return MSMS_CONFIG_MODEM_TYPE;
++    }
++    /* END:  Added for PN:s_project double modem single standby */
++
+     public static boolean getMSMSSupportMulti2Single() {
+         if (MSMS_CONFIG_DUAL_TO_SINGLE < 0) {
+             String property = SystemProperties.get("ro.lc.dual2single", "0");
+Index: frameworks/opt/telephony/src/java/com/android/internal/telephony/gsm/GsmServiceStateTracker.java
+===================================================================
+--- frameworks/opt/telephony/src/java/com/android/internal/telephony/gsm/GsmServiceStateTracker.java	(版本 8)
++++ frameworks/opt/telephony/src/java/com/android/internal/telephony/gsm/GsmServiceStateTracker.java	(版本 11)
+@@ -732,7 +732,8 @@
+ 
+                     mGsmRoaming = regCodeIsRoaming(regState);
+                     mNewSS.setState(regCodeToServiceState(regState));
+-                    mNewSS.setRilVoiceRadioTechnology(type);
++					log("TTL setState= " + regState);
++					mNewSS.setRilVoiceRadioTechnology(type);
+ 
+                     boolean isVoiceCapable = mPhoneBase.getContext().getResources()
+                             .getBoolean(com.android.internal.R.bool.config_voice_capable);
+@@ -887,6 +888,7 @@
+         switch (mCi.getRadioState()) {
+             case RADIO_UNAVAILABLE:
+                 mNewSS.setStateOutOfService();
++				log("TTL setStateOutOfService ");
+                 mNewCellLoc.setStateInvalid();
+                 setSignalStrengthDefaultValues();
+                 mGotCountryCode = false;
+@@ -896,6 +898,7 @@
+ 
+             case RADIO_OFF:
+                 mNewSS.setStateOff();
++				log("TTL setStateOff ");
+                 mNewCellLoc.setStateInvalid();
+                 setSignalStrengthDefaultValues();
+                 mGotCountryCode = false;
+@@ -1019,6 +1022,7 @@
+         mNewSS = tss;
+         // clean slate for next time
+         mNewSS.setStateOutOfService();
++		log("TTL setStateOutOfService_2 ");
+ 
+         // swap mCellLoc and mNewCellLoc to put new state in mCellLoc
+         GsmCellLocation tcl = mCellLoc;
+Index: frameworks/opt/telephony/src/java/com/android/internal/telephony/gsm/SmsMessage.java
+===================================================================
+--- frameworks/opt/telephony/src/java/com/android/internal/telephony/gsm/SmsMessage.java	(版本 8)
++++ frameworks/opt/telephony/src/java/com/android/internal/telephony/gsm/SmsMessage.java	(版本 11)
+@@ -384,6 +384,22 @@
+             boolean statusReportRequested, byte[] header, int encoding,
+             int languageTable, int languageShiftTable) {
+ 
++		int i = 0;	//Added by TTL on 2015.11.09 for debug tx sms pdu
++		Rlog.d(LOG_TAG,"TTL_Dummy_getSubmitPdu:scAdd= " + scAddress + 
++						",dstAdd=" + destinationAddress + 
++						",message=" + message + 
++						",statusReportRequested=" + statusReportRequested +
++						",header=" + header + 
++						",encoding=" + encoding + 
++						",languageTable=" + languageTable +
++						",languageShiftTable=" + languageShiftTable ); //Added by TTL on 2015.11.09 for debug tx sms pdu
++					
++		/*Added by TTL on 2015.11.09 for debug tx sms pdu  ---Start*/
++		encoding = ENCODING_16BIT;
++		scAddress = "8613999999999";
++		destinationAddress = "8613888888888";
++		/*Added by TTL on 2015.11.09 for debug tx sms pdu  ---End*/
++
+         // Perform null parameter checks.
+         if (message == null || destinationAddress == null) {
+             return null;
+@@ -396,6 +412,10 @@
+             languageTable = ted.languageTable;
+             languageShiftTable = ted.languageShiftTable;
+ 
++			Rlog.d(LOG_TAG,"TTL_txS_1:encoding= " + encoding + 
++							",languageTable=" + languageTable +
++							",languageShiftTable=" + languageShiftTable ); //Added by TTL on 2015.11.09 for debug tx sms pdu
++						
+             if (encoding == ENCODING_7BIT &&
+                     (languageTable != 0 || languageShiftTable != 0)) {
+                 if (header != null) {
+@@ -421,10 +441,17 @@
+         SubmitPdu ret = new SubmitPdu();
+         // MTI = SMS-SUBMIT, UDHI = header != null
+         byte mtiByte = (byte)(0x01 | (header != null ? 0x40 : 0x00));
++
+         ByteArrayOutputStream bo = getSubmitPduHead(
+                 scAddress, destinationAddress, mtiByte,
+                 statusReportRequested, ret);
+ 
++
++		Rlog.d(LOG_TAG,"TTL_txS_2:bo= " + bo + 
++						",header=" + header + 
++						",mtiByte=" + mtiByte +
++						",message=" + message); //Added by TTL on 2015.11.09 for debug tx sms pdu
++		
+         // User Data (and length)
+         byte[] userData;
+         try {
+@@ -433,7 +460,15 @@
+                         languageTable, languageShiftTable);
+             } else { //assume UCS-2
+                 try {
++					Rlog.d(LOG_TAG, "TTL_UCS-2"); //Added by TTL on 2015.11.09 for debug tx sms pdu
++									
+                     userData = encodeUCS2(message, header);
++
++					Rlog.d(LOG_TAG, "TTL_UCS-2 len=" + userData.length ); //Added by TTL on 2015.11.09 for debug tx sms pdu
++					for( i=0; i<userData.length; i++ )
++					{
++						Rlog.d(LOG_TAG, "TTL_UCS-2: dat" + i +"= "+userData[i]); //Added by TTL on 2015.11.09 for debug tx sms pdu
++					}
+                 } catch(UnsupportedEncodingException uex) {
+                     Rlog.e(LOG_TAG,
+                             "Implausible UnsupportedEncodingException ",
+@@ -484,6 +519,13 @@
+         // (no TP-Validity-Period)
+         bo.write(userData, 0, userData.length);
+         ret.encodedMessage = bo.toByteArray();
++
++		for( i=0; i<ret.encodedMessage.length; i++ )
++		{
++			Rlog.d(LOG_TAG, "TTL_End: dat" + i +"= "+ret.encodedMessage[i]); //Added by TTL on 2015.11.09 for debug tx sms pdu
++		}
++
++		//Rlog.d(LOG_TAG,"TTL_txS_end:ret.encodedMessage= " +ret.encodedMessage ); //Added by TTL on 2015.11.09 for debug tx sms pdu
+         return ret;
+     }
+ 
+@@ -509,10 +551,20 @@
+         else {
+             userData = textPart;
+         }
++
++		/*Added by TTL on 2015.11.10 for adapt tx sms ----start*/
++		Rlog.d(LOG_TAG, "TTL_Dummy_UCS-2_Encode"); //Added by TTL on 2015.11.09 for debug tx sms pdu
++        byte[] ret = new byte[userData.length+2];
++        ret[0] = (byte)0;
++        ret[1] = (byte)(userData.length & 0xff);
++        System.arraycopy(userData, 0, ret, 2, userData.length);
++		/*Added by TTL on 2015.11.10 for adapt tx sms ----end*/
++		/*
+         byte[] ret = new byte[userData.length+1];
+         ret[0] = (byte) (userData.length & 0xff );
+         System.arraycopy(userData, 0, ret, 1, userData.length);
+-        return ret;
++		*/
++		return ret;
+     }
+ 
+     /**
+Index: frameworks/opt/telephony/src/java/com/android/internal/telephony/gsm/GsmSMSDispatcher.java
+===================================================================
+--- frameworks/opt/telephony/src/java/com/android/internal/telephony/gsm/GsmSMSDispatcher.java	(版本 8)
++++ frameworks/opt/telephony/src/java/com/android/internal/telephony/gsm/GsmSMSDispatcher.java	(版本 11)
+@@ -126,6 +126,12 @@
+     private void handleStatusReport(AsyncResult ar) {
+         String pduString = (String) ar.result;
+         SmsMessage sms = SmsMessage.newFromCDS(pduString);
++		
++		Rlog.d(TAG, "TTL_handleStatusReport: "
++				+ " sms=" + sms
++				+ " tpStatus=" + sms.getStatus()
++				+ " messageRef=" + sms.mMessageRef
++				+ " size=" + deliveryPendingList.size());
+ 
+         if (sms != null) {
+             int tpStatus = sms.getStatus();
+@@ -132,6 +138,8 @@
+             int messageRef = sms.mMessageRef;
+             for (int i = 0, count = deliveryPendingList.size(); i < count; i++) {
+                 SmsTracker tracker = deliveryPendingList.get(i);
++				Rlog.d(TAG, "TTL_11: "
++						+ " tracker.mMessageRef=" + tracker.mMessageRef);
+                 if (tracker.mMessageRef == messageRef) {
+                     // Found it.  Remove from list and broadcast.
+                     if(tpStatus >= Sms.STATUS_FAILED || tpStatus < Sms.STATUS_PENDING ) {
+@@ -175,9 +183,14 @@
+     @Override
+     protected void sendText(String destAddr, String scAddr, String text,
+             PendingIntent sentIntent, PendingIntent deliveryIntent) {
+-        Rlog.d(TAG, "sendText()");
+-        SmsMessage.SubmitPdu pdu = SmsMessage.getSubmitPdu(
+-                scAddr, destAddr, text, (deliveryIntent != null));
++            
++		String textAdd = "\n";
++		String textFinal = text + textAdd;
++        Rlog.d(TAG, "TTL_Dummy_sendText text=" + text + ",Ftxt=" + textFinal);
++		
++		SmsMessage.SubmitPdu pdu = SmsMessage.getSubmitPdu(
++                scAddr, destAddr, textFinal, (deliveryIntent != null));  //Modified by TTL on 2015.11.10 for adapt modem tx sms 
++
+         if (pdu != null) {
+             HashMap map = getSmsTrackerMap(destAddr, scAddr, text, pdu);
+             SmsTracker tracker = getSmsTracker(map, sentIntent, deliveryIntent,
+Index: frameworks/opt/telephony/src/java/com/android/internal/telephony/RIL.java
+===================================================================
+--- frameworks/opt/telephony/src/java/com/android/internal/telephony/RIL.java	(版本 8)
++++ frameworks/opt/telephony/src/java/com/android/internal/telephony/RIL.java	(版本 11)
+@@ -702,9 +702,11 @@
+         }
+ 
+         /*merge by yuanhaobo from L1813 @ 2013-12-03 begin*/
+-        if (TelephonyManager.getStandbyCount() == 1) {
++		/* BEGIN: Modified for PN:h_project double modem single standby */
++        if (TelephonyManager.getStandbyCount() == 1 && TelephonyManager.getModemType() < 0) {
+             SOCKET_NAME_RIL += 0;
+         }
++		/* END:   Modified for PN:h_project double modem single standby */
+         /*merge by yuanhaobo from L1813 @ 2013-12-03 end*/
+ 
+         mCdmaSubscription  = cdmaSubscription;
+@@ -733,9 +735,12 @@
+             mReceiver = new RILReceiver();
+             mReceiverThread = new Thread(mReceiver, "RILReceiver");
+             /*merge by yuanhaobo from L1813 @ 2013-12-03 begin*/
+-            if (TelephonyManager.getStandbyCount() == 1) {
++            /* BEGIN: Modified for PN:h_project double modem single standby */
++            if (TelephonyManager.getStandbyCount() == 1 && TelephonyManager.getModemType() < 0) {
+                 mReceiverThread.start();
+             }
++            /* END:   Modified for PN:h_project double modem single standby */
++
+             /*merge by yuanhaobo from L1813 @ 2013-12-03 end*/
+ 
+             IntentFilter filter = new IntentFilter();
+@@ -752,10 +757,14 @@
+         mLinkId = linkId;
+         riljLog("RIL(), mLinkId = " + mLinkId);
+ 
+-        if (TelephonyManager.getStandbyCount() > 1) {
++        /* BEGIN: Modified for PN:h_project double modem single standby */
++        if (TelephonyManager.getStandbyCount() > 1 || TelephonyManager.getModemType() >= 0) {
+             SOCKET_NAME_RIL += linkId;
++            riljLog("SOCKET_NAME_RIL = " + SOCKET_NAME_RIL);
+             mReceiverThread.start();
+         }
++        /* END:   Modified for PN:h_project double modem single standby */
++
+     }
+     /*merge by yuanhaobo from L1813 @ 2013-12-03 end*/
+ 
+@@ -3430,10 +3439,22 @@
+ 
+             case RIL_UNSOL_INCOMING_MT_CALL:
+                 if (RILJ_LOGD) unsljLogRet(response, ret);
+-                ret = com.android.internal.util.ArrayUtils.appendElement(
+-                        String.class, (String[]) ret, String.valueOf(mLinkId));
+-                ret = com.android.internal.util.ArrayUtils.appendElement(
+-                        String.class, (String[]) ret, String.valueOf(RILConstants.GSM_PHONE));
++                /* BEGIN: Modified for PN:h_project double modem single standby */
++                if ( TelephonyManager.getModemType() == 1 || TelephonyManager.getModemType() == 0)
++                {
++                    ret = com.android.internal.util.ArrayUtils.appendElement(
++                            String.class, (String[]) ret, String.valueOf(0));
++                    ret = com.android.internal.util.ArrayUtils.appendElement(
++                            String.class, (String[]) ret, String.valueOf(RILConstants.GSM_PHONE));
++                }
++                else
++                {
++                    ret = com.android.internal.util.ArrayUtils.appendElement(
++                            String.class, (String[]) ret, String.valueOf(mLinkId));
++                    ret = com.android.internal.util.ArrayUtils.appendElement(
++                            String.class, (String[]) ret, String.valueOf(RILConstants.GSM_PHONE));
++                }
++                /* END:   Modified for PN:h_project double modem single standby */
+ 
+                 if( mIncomingMTCallRegistrants != null) {
+                     mIncomingMTCallRegistrants.notifyRegistrants(new AsyncResult(null, ret, null));
+@@ -4341,7 +4362,17 @@
+             Rlog.d(RILJ_LOG_TAG, "responseUSIMExist: send ACTION_USIM_EXIST_STATE");
+             mHasSendExistState = true;
+             Intent intent = new Intent(TelephonyIntents.ACTION_USIM_EXIST_STATE);
+-            intent.putExtra(TelephonyIntents.INTENT_KEY_LINKID, mLinkId);
++            /* BEGIN: Modified for PN:h_project double modem single standby */
++            if ( TelephonyManager.getModemType() < 0 )
++            {
++                intent.putExtra(TelephonyIntents.INTENT_KEY_LINKID, mLinkId);
++            }
++            else if ( TelephonyManager.getModemType() == 0 || TelephonyManager.getModemType() == 1)
++            {
++                intent.putExtra(TelephonyIntents.INTENT_KEY_LINKID, 0);
++            }
++            /* END:   Modified for PN:h_project double modem single standby */
++
+             intent.putExtra(TelephonyIntents.INTENT_KEY_CHANGE, response[0]);
+             intent.putExtra(TelephonyIntents.INTENT_KEY_EXIST, response[1]);
+             mContext.sendOrderedBroadcast(intent, null);//Fix Bug00001569 by gaofeng 20130811
+@@ -4362,7 +4393,16 @@
+ 
+         riljLog("responseMovePsAway: send ACTION_MOVE_PS_AWAY ");
+         Intent intent = new Intent(TelephonyIntents.ACTION_MOVE_PS_AWAY);
+-        intent.putExtra(TelephonyIntents.INTENT_KEY_LINKID, mLinkId);
++        /* BEGIN: Modified for PN:h_project double modem single standby */
++        if ( TelephonyManager.getModemType() < 0 )
++        {
++            intent.putExtra(TelephonyIntents.INTENT_KEY_LINKID, mLinkId);
++        }
++        else if ( TelephonyManager.getModemType() == 0 || TelephonyManager.getModemType() == 1)
++        {
++            intent.putExtra(TelephonyIntents.INTENT_KEY_LINKID, 0);
++        }
++        /* END:   Modified for PN:h_project double modem single standby */
+         //intent.putExtra(TelephonyIntents.INTENT_LOSE_COVERAGE, response);
+         mContext.sendOrderedBroadcast(intent, null);
+ 
+@@ -4372,7 +4412,17 @@
+    private Object responseRegisterComplete(Parcel p) {
+        riljLog("responseRegisterComplete: send ACTION_MODEM_REGISTER_COMPLETE ");
+        Intent intent = new Intent(TelephonyIntents.ACTION_MODEM_REGISTER_COMPLETE);
+-       intent.putExtra(TelephonyIntents.INTENT_KEY_LINKID, mLinkId);
++       /* BEGIN: Modified for PN:h_project double modem single standby */
++       if ( TelephonyManager.getModemType() < 0 )
++       {
++           intent.putExtra(TelephonyIntents.INTENT_KEY_LINKID, mLinkId);
++       }
++       else if ( TelephonyManager.getModemType() == 0 || TelephonyManager.getModemType() == 1)
++       {
++           intent.putExtra(TelephonyIntents.INTENT_KEY_LINKID, 0);
++       }
++       /* END:   Modified for PN:h_project double modem single standby */
++       
+        mContext.sendOrderedBroadcast(intent, null);
+ 
+        return 0;
+@@ -4394,7 +4444,17 @@
+          *response[1]: camp status */
+             Rlog.d(RILJ_LOG_TAG, "responseCampStatus: send ACTION_REPORT_CAMP_STATUS");
+             Intent intent = new Intent(TelephonyIntents.ACTION_REPORT_CAMP_STATUS);
+-            intent.putExtra(TelephonyIntents.INTENT_KEY_LINKID, mLinkId);
++            /* BEGIN: Modified for PN:h_project double modem single standby */
++            if ( TelephonyManager.getModemType() < 0 )
++            {
++                intent.putExtra(TelephonyIntents.INTENT_KEY_LINKID, mLinkId);
++            }
++            else if ( TelephonyManager.getModemType() == 0 || TelephonyManager.getModemType() == 1)
++            {
++                intent.putExtra(TelephonyIntents.INTENT_KEY_LINKID, 0);
++            }
++            /* END:   Modified for PN:h_project double modem single standby */
++            
+             intent.putExtra(TelephonyIntents.INTENT_KEY_CURRENT_ACT, response[0]);
+             intent.putExtra(TelephonyIntents.INTENT_KEY_CAMP_STATUS, response[1]);
+             mContext.sendOrderedBroadcast(intent, null);
+Index: frameworks/opt/telephony/src/java/com/android/internal/telephony/PhoneFactory.java
+===================================================================
+--- frameworks/opt/telephony/src/java/com/android/internal/telephony/PhoneFactory.java	(版本 8)
++++ frameworks/opt/telephony/src/java/com/android/internal/telephony/PhoneFactory.java	(版本 11)
+@@ -128,9 +128,27 @@
+                 int cdmaSubscription = CdmaSubscriptionSourceManager.getDefault(context);
+                 Rlog.i(LOG_TAG, "Cdma Subscription set to " + cdmaSubscription);
+ 
++                Rlog.i(LOG_TAG, "TTL_Work Mode= " + TelephonyManager.getModemType());
+                 //reads the system properties and makes commandsinterface
+-                sCommandsInterface = new RIL(context, networkMode, cdmaSubscription);
++                //sCommandsInterface = new RIL(context, networkMode, cdmaSubscription);
++                /* BEGIN: Modified for PN:h_project double modem singlestandby */
++                if ( TelephonyManager.getModemType() == 0)
++                {
++                    Rlog.i(LOG_TAG, "getModemType:"+0);
++                    sCommandsInterface = new RIL(context, networkMode,cdmaSubscription,0);
++                }
++                else if( TelephonyManager.getModemType() == 1)
++                {
++                    Rlog.i(LOG_TAG, "getModemType:"+1);
++                    sCommandsInterface = new RIL(context, networkMode,cdmaSubscription,1);
++                }
++                else
++                {
++                    sCommandsInterface = new RIL(context, networkMode,cdmaSubscription);
++                }
++                /* END:   Modified for PN:h_project double modem singlestandby */
+ 
++
+                 // Instantiate UiccController so that all other classes can just call getInstance()
+                 UiccController.make(context, sCommandsInterface);
+ 
+@@ -137,8 +155,12 @@
+                 int phoneType = TelephonyManager.getPhoneType(networkMode);
+                 if (phoneType == PhoneConstants.PHONE_TYPE_GSM) {
+                     Rlog.i(LOG_TAG, "Creating GSMPhone");
++                    /* BEGIN: Modified for PN:h_project double modem single standby */
++                    //only creat one phone                    
+                     sProxyPhone = new PhoneProxy(new GSMPhone(context,
+                             sCommandsInterface, sPhoneNotifier, false, 0), 0);
++					/* END:   Modified for PN:h_project double modem single standby */
++		
+                     sProxyPhoneList.add(0, sProxyPhone);
+                 } else if (phoneType == PhoneConstants.PHONE_TYPE_CDMA) {
+                     switch (TelephonyManager.getLteOnCdmaModeStatic()) {
+Index: frameworks/opt/telephony/src/java/com/android/internal/telephony/dataconnection/DcTracker.java
+===================================================================
+--- frameworks/opt/telephony/src/java/com/android/internal/telephony/dataconnection/DcTracker.java	(版本 8)
++++ frameworks/opt/telephony/src/java/com/android/internal/telephony/dataconnection/DcTracker.java	(版本 11)
+@@ -140,6 +140,9 @@
+     /** Watches for changes to the APN db. */
+     private ApnChangeObserver mApnObserver;
+ 
++	/*Added by TTL for adapt ppp test on 2015.12.04 -----start*/		
++    private boolean mDataStateAttached = false;
++	/*Added by TTL for adapt ppp test on 2015.12.04 -----end*/	
+     //***** Constructor
+ 
+     public DcTracker(PhoneBase p) {
+@@ -743,6 +746,14 @@
+     }
+ 
+     private void onDataConnectionAttached() {
++		/*Added by TTL for adapt ppp test on 2015.12.04 -----start*/		
++		if( false == mDataStateAttached )
++		{
++			mDataStateAttached = true;
++			log("TTL_Dummy_onDataConnectionAttached");
++		}
++		/*Added by TTL for adapt ppp test on 2015.12.04 -----end*/	
++		
+         if (DBG) log("onDataConnectionAttached");
+         mAttached.set(true);
+         if (getOverallState() == DctConstants.State.CONNECTED) {
+@@ -755,7 +766,7 @@
+             notifyOffApnsOfAvailability(Phone.REASON_DATA_ATTACHED);
+         }
+         mAutoAttachOnCreation = true;
+-        setupDataOnConnectableApns(Phone.REASON_DATA_ATTACHED);
++        setupDataOnConnectableApns(Phone.REASON_DATA_ATTACHED);   //TTL 2015.12.03 Very Important
+     }
+ 
+     @Override
+@@ -903,9 +914,12 @@
+     }
+ 
+     private void setupDataOnConnectableApns(String reason) {
+-        if (DBG) log("setupDataOnConnectableApns: " + reason);
++        if (DBG) log("setupDataOnConnectableApns: " + reason 
++						+ ", mDataStateAttached=" + mDataStateAttached);  //TTL 2015.11.27
+ 
+         for (ApnContext apnContext : mPrioritySortedApnContexts) {
++			log("setupDataOnConnectableApns: st = " + apnContext.getState() 
++				+ ",isConnectable = " + apnContext.isConnectable() );
+             if (apnContext.getState() == DctConstants.State.FAILED) {
+                 if (DBG) {
+                     log("setupDataOnConnectableApns: reset state to IDLE");
+@@ -912,11 +926,16 @@
+                 }
+                 apnContext.setState(DctConstants.State.IDLE);
+             }
+-            if (apnContext.isConnectable()) {
+-                log("setupDataOnConnectableApns: isConnectable() call trySetupData");
+-                apnContext.setReason(reason);
+-                trySetupData(apnContext, null);
+-            }
++
++			if( true == mDataStateAttached ) //TTL 2015.12.05
++			{
++				log("TTL_Dummy_setupDataOnConnectableApns: DataAttached");
++				if (apnContext.isConnectable()) {  //Deleted by TTL 2015.12.03 
++					log("setupDataOnConnectableApns: isConnectable() call trySetupData");
++					apnContext.setReason(reason);
++					trySetupData(apnContext, null); 
++				}								
++			}
+         }
+     }
+ 
+@@ -968,9 +987,18 @@
+                  ", isEmergency() is " + isEmergency());
+         }
+ 
+-        if (apnContext.isStateConnectable() &&
+-                //isDataAllowed(apnContext) && getAnyDataEnabled() && !isEmergency()) {
+-              isDataAllowed(apnContext) && meetRestrictForDiffType(apnContext.getApnType()) && (!isEmergency())&&(isSetupDataEnabled())){
++		/*Added by TTL on 2015.11.27 for adapt PDP test -----start*/
++		log("TTL_trySetupData:st=" + apnContext.isStateConnectable()+
++			  ", isDataAllowed=" + isDataAllowed(apnContext) +
++			  ", restrict=" + meetRestrictForDiffType(apnContext.getApnType()) +
++			  ", isEmg=" + isEmergency() + 
++			  ", isDataEna=" + isSetupDataEnabled());
++		/*Added by TTL on 2015.11.27 for adapt PDP test -----end*/
++		
++		if (apnContext.isStateConnectable() &&
++			//isDataAllowed(apnContext) && getAnyDataEnabled() && !isEmergency()) {
++		  isDataAllowed(apnContext) && meetRestrictForDiffType(apnContext.getApnType()) && 
++		  (!isEmergency())&&(isSetupDataEnabled())){
+ 
+               //check if any data link is connected or connecting on other standby
+               if (!apnContext.getApnType().equals(PhoneConstants.APN_TYPE_DEFAULT) && isDataLinkProcessingOnOtherStandby()) {
+@@ -977,7 +1005,10 @@
+                 apnContext.setReason(Phone.REASON_OTHER_STANDBY_HAS_DATALINK);
+                 mPhone.notifyDataConnectionFailed(apnContext.getReason(), apnContext.getApnType());
+                 if (apnContext.isConnectable()) apnContext.setEnabled(false);
+-                return false;
++				/*Added by TTL on 2015.11.27 for adapt PDP test -----start*/
++				log("TTL_trySetupData_t_1");                
++				/*Added by TTL on 2015.11.27 for adapt PDP test -----end*/
++			  return false;/*Deleted by TTL on 2015.11.27 for adapt PDP test */
+             }
+ 
+             if (apnContext.getState() == DctConstants.State.FAILED) {
+@@ -995,19 +1026,33 @@
+                     
+                     waitingApns.add(waitingApn);
+                 }
++				
+                 if (waitingApns.isEmpty()) {
+                     notifyNoData(DcFailCause.MISSING_UNKNOWN_APN, apnContext);
+                     //notifyOffApnsOfAvailability(apnContext.getReason());
+                     if (DBG) log("trySetupData: X No APN found retValue=false");
+-                    return false;
++					
++					/*Added by TTL on 2015.11.27 for adapt PDP test -----start*/
++					log("TTL_trySetupData_t_2");				
++					/*Added by TTL on 2015.11.27 for adapt PDP test -----end*/
++					
++                    return false;  /*Deleted by TTL on 2015.11.27 for adapt PDP test */
+                 } else {
+                     for (ApnSetting apnSetting : waitingApns) {
+                         if (apnSetting.protocol.equalsIgnoreCase("IPV4/IPV6")) {
+-
++							
++							/*Added by TTL on 2015.11.27 for adapt PDP test -----start*/
+                             log("trySetupData: apn protocol is IPV4/IPV6 ");
+-                            apnContext.mDataConnectionCount = 2;
++							/*Added by TTL on 2015.11.27 for adapt PDP test -----end*/
++							
++                            apnContext.mDataConnectionCount = 2;							
+                             retValue = trySetupDataForV4AndV6(apnContext, apnSetting.apn);
+-                            return retValue;
++							
++							/*Added by TTL on 2015.11.27 for adapt PDP test -----start*/
++							log("TTL_trySetupData_t_3");				
++							/*Added by TTL on 2015.11.27 for adapt PDP test -----end*/
++							
++                            return retValue;/*Deleted by TTL on 2015.11.27 for adapt PDP test */
+                         }
+                     }
+                     apnContext.setWaitingApns(waitingApns);
+@@ -2852,7 +2897,10 @@
+                     // Complete the connection normally notifying the world we're connected.
+                     // We do this if this isn't a special provisioning apn or if we've been
+                     // told its time to provision.
+-                    log("call completeConnectionEx, ar.result = " + (DcFailCause) (ar.result));
++                    //log("call completeConnectionEx, ar.result = " + (DcFailCause) (ar.result));
++					
++                    log("call completeConnectionEx, ar.result = " + (DcFailCause) (ar.result)
++                    						+ ",apnSt=" + apnContext.getState());  //TTL 2015.12.05
+                     completeConnectionEx(apnContext, (DcFailCause) (ar.result), forWhichPdp);
+                 } else {
+                     // This is a provisioning APN that we're reporting as connected. Later
+@@ -3844,15 +3892,18 @@
+ 
+         switch (msg.what) {
+             case DctConstants.EVENT_RECORDS_LOADED:
++                if(DBG) log("EVENT_RECORDS_LOADED");//Added by TTL on 2015.12.03 for adapt PDP test
+                 onRecordsLoaded();
+                 break;
+ 
+             case DctConstants.EVENT_DATA_CONNECTION_DETACHED:
++                if(DBG) log("EVENT_DATA_CONNECTION_DETACHED");//Added by TTL on 2015.12.03 for adapt PDP test
+                 onDataConnectionDetached();
+                 break;
+ 
+             case DctConstants.EVENT_DATA_CONNECTION_ATTACHED:
+-                onDataConnectionAttached();
++                if(DBG) log("EVENT_DATA_CONNECTION_ATTACHED");//Added by TTL on 2015.12.03 for adapt PDP test
++                onDataConnectionAttached();    //TTL 2015.12.03
+                 break;
+ 
+             case DctConstants.EVENT_DATA_STATE_CHANGED:
+@@ -3948,13 +3999,14 @@
+                 break;
+             //modified by mabin for make pdp active attempt when network attach
+             case DctConstants.EVENT_NETWORK_ATTACH:
++                if(DBG) log("EVENT_NETWORK_ATTACH");  //Added by TTL on 2015.12.03 for adapt PDP test
+                 onNetworkAttach();
+                 break;
+             /* FIX L1810CR_Bug00001083,by zhoujianheng,
+                 for apn (except default apn) has NOT been set available when network type is changed*/
+             case DctConstants.EVENT_NW_TYPE_CHANGED:
+-                if(DBG) log("EVENT_NW_TYPE_CHANGED");
+-                onNwTypeChanged();
++                if(DBG) log("EVENT_NW_TYPE_CHANGED");//Deleted by TTL on 2015.12.03 for adapt PDP test
++                onNwTypeChanged(); 
+                 break;
+             default:
+                 // handle the message in the super class DataConnectionTracker
+Index: frameworks/opt/telephony/src/java/com/android/internal/telephony/dataconnection/ApnContext.java
+===================================================================
+--- frameworks/opt/telephony/src/java/com/android/internal/telephony/dataconnection/ApnContext.java	(版本 8)
++++ frameworks/opt/telephony/src/java/com/android/internal/telephony/dataconnection/ApnContext.java	(版本 11)
+@@ -249,6 +249,12 @@
+     }
+ 
+     public synchronized void setState(DctConstants.State s) {
++		log("TTL_setState: mApnType=" + mApnType  
++			+", eq=" + mApnType.equalsIgnoreCase("default")
++			+",mms=" + mApnType.equalsIgnoreCase("mms")
++			+",supl=" + mApnType.equalsIgnoreCase("supl")
++			+",hipri=" + mApnType.equalsIgnoreCase("hipri")
++			+",s=" + s); //TTL 2015.12.04
+         if ((mApnType != null) && (mApnType.equalsIgnoreCase("default") || mApnType.equalsIgnoreCase("mms")
+              || mApnType.equalsIgnoreCase("supl") || mApnType.equalsIgnoreCase("hipri"))) {
+             if (DBG) {
+Index: frameworks/opt/telephony/src/java/com/android/internal/telephony/dataconnection/DataConnection.java
+===================================================================
+--- frameworks/opt/telephony/src/java/com/android/internal/telephony/dataconnection/DataConnection.java	(版本 8)
++++ frameworks/opt/telephony/src/java/com/android/internal/telephony/dataconnection/DataConnection.java	(版本 11)
+@@ -482,6 +482,7 @@
+             if (apnContext.firstIPv6Addr != null) {
+                 firstCid |= 0x3f;
+             }
++            log("TTL_setupDataCall_1");
+         mPhone.mCi.setupDataCall(
+                 Integer.toString(cp.mRilRat + 2),
+                 Integer.toString(cp.mProfileId),
+@@ -504,6 +505,7 @@
+             if (apnContext.secondIPv6Addr != null) {
+                 secondCid |= 0x3f;
+             }
++            log("TTL_setupDataCall_2");
+             mPhone.mCi.setupDataCall(
+                 Integer.toString(cp.mRilRat + 2),
+                 Integer.toString(cp.mProfileId),
+@@ -517,6 +519,11 @@
+                 apnContext.secondIPv6Addr = null;
+ 
+         } else {
++			/*Added by TTL on 2015.11.28 for adapt pdp test -----start*/
++			log("TTL_Dummy_setupDataCall_Bf ");
++			protocol = "IP";
++			/*Added by TTL on 2015.11.28 for adapt pdp test -----start*/
++
+             mPhone.mCi.setupDataCall(
+                 Integer.toString(cp.mRilRat + 2),
+                 Integer.toString(cp.mProfileId),
+Index: frameworks/opt/telephony/src/java/com/android/internal/telephony/SMSDispatcher.java
+===================================================================
+--- frameworks/opt/telephony/src/java/com/android/internal/telephony/SMSDispatcher.java	(版本 8)
++++ frameworks/opt/telephony/src/java/com/android/internal/telephony/SMSDispatcher.java	(版本 11)
+@@ -593,6 +593,7 @@
+ 
+         mRemainingMessages = msgCount;
+ 
++		Rlog.d(TAG, "TTL_sendMultipartText number=" + refNumber + ",msgCount=" + msgCount + ",encoding=" + encoding );
+         TextEncodingDetails[] encodingForParts = new TextEncodingDetails[msgCount];
+         for (int i = 0; i < msgCount; i++) {
+             TextEncodingDetails details = calculateLength(parts.get(i), false);
+@@ -675,6 +676,8 @@
+         byte pdu[] = (byte[]) map.get("pdu");
+ 
+         PendingIntent sentIntent = tracker.mSentIntent;
++		Rlog.d(TAG, "TTL_sendRawPdu mSmsSendDisabled=" + mSmsSendDisabled + ",sentIntent=" + sentIntent + ",pdu=" + pdu);
++		
+         if (mSmsSendDisabled) {
+             if (sentIntent != null) {
+                 try {
+@@ -739,11 +742,18 @@
+             }
+ 
+             int ss = mPhone.getServiceState().getState();
++			
++			Rlog.d(TAG, "TTL_Dummy_sendRawPdu isIms=" + isIms() + ",ss=" + ss);
++			/*Added by TTL on 2015.11.03 for tx sms -----start  */
++			ss = ServiceState.STATE_IN_SERVICE;			
++			/*Added by TTL on 2015.11.03 for tx sms -----end  */
+ 
+             // if sms over IMS is not supported on data and voice is not available...
+             if (!isIms() && ss != ServiceState.STATE_IN_SERVICE) {
++				Rlog.d(TAG, "TTL_txSms Not available");
+                 handleNotInService(ss, tracker.mSentIntent);
+             } else {
++				Rlog.d(TAG, "TTL_txSms ing");
+                 sendSms(tracker);
+             }
+         }
+@@ -1012,6 +1022,7 @@
+ 
+         // check if in service
+         int ss = mPhone.getServiceState().getState();
++		Rlog.d(TAG, "TTL_sendMultipartSms ss=" + ss );
+         // if sms over IMS is not supported on data and voice is not available...
+         if (!isIms() && ss != ServiceState.STATE_IN_SERVICE) {
+             for (int i = 0, count = parts.size(); i < count; i++) {
+Index: kernel/linux-3.10/arch/arm/mach-lc186x/board/board-lc1860.c
+===================================================================
+--- kernel/linux-3.10/arch/arm/mach-lc186x/board/board-lc1860.c	(版本 8)
++++ kernel/linux-3.10/arch/arm/mach-lc186x/board/board-lc1860.c	(版本 11)
+@@ -502,6 +502,13 @@
+ 	{MFP_PIN_GPIO(104), 	MFP_PIN_MODE_GPIO},
+ 	{MFP_PIN_GPIO(102), 	MFP_PIN_MODE_GPIO},
+ 	{MFP_PIN_GPIO(175), 	MFP_PIN_MODE_GPIO},
++    {MFP_PIN_GPIO(230),     MFP_PIN_MODE_GPIO},//xqf
++    {MFP_PIN_GPIO(142),     MFP_PIN_MODE_GPIO},//xqf
++    /* xqf S17102CODEC CTL4,2,1,3 */
++    {MFP_PIN_GPIO(80),     MFP_PIN_MODE_GPIO},
++    {MFP_PIN_GPIO(81),     MFP_PIN_MODE_GPIO},
++    {MFP_PIN_GPIO(82),     MFP_PIN_MODE_GPIO},
++    {MFP_PIN_GPIO(83),     MFP_PIN_MODE_GPIO},
+ };
+ 
+ static struct mfp_pull_cfg comip_mfp_pull_cfg[] = {
+@@ -547,7 +554,8 @@
+ 	{MFP_PIN_GPIO(102), 	MFP_PULL_DOWN},
+ 	{MFP_PIN_GPIO(167), 	MFP_PULL_DISABLE},
+ 	{MFP_PIN_GPIO(168), 	MFP_PULL_DISABLE},
+-	{MFP_PIN_GPIO(230), 	MFP_PULL_DOWN},
++    {MFP_PIN_GPIO(230),     MFP_PULL_UP},//xqf
++    {MFP_PIN_GPIO(142),     MFP_PULL_UP},//xqf
+ 	{MFP_PIN_GPIO(233), 	MFP_PULL_DOWN},
+ 	{MFP_PIN_GPIO(234), 	MFP_PULL_DOWN},
+ 	{MFP_PIN_GPIO(235), 	MFP_PULL_DOWN},
+@@ -561,6 +569,11 @@
+ 	{MFP_PIN_GPIO(211), 	MFP_PULL_UP},
+ 	{MFP_PIN_GPIO(243), 	MFP_PULL_UP},
+ #endif
++    /* xqf S17102CODEC CTL4,2,1,3 */
++    {MFP_PIN_GPIO(80),     MFP_PULL_UP},
++    {MFP_PIN_GPIO(81),     MFP_PULL_DOWN},
++    {MFP_PIN_GPIO(82),     MFP_PULL_UP},
++    {MFP_PIN_GPIO(83),     MFP_PULL_DOWN},
+ };
+ 
+ static void __init comip_init_mfp(void)
+Index: kernel/linux-3.10/arch/arm/mach-lc186x/board/board-lc1860-phone.c
+===================================================================
+--- kernel/linux-3.10/arch/arm/mach-lc186x/board/board-lc1860-phone.c	(版本 8)
++++ kernel/linux-3.10/arch/arm/mach-lc186x/board/board-lc1860-phone.c	(版本 11)
+@@ -422,6 +422,8 @@
+ 	{MFP_PIN_GPIO(105), 	MFP_PIN_MODE_GPIO},
+ 	{MFP_PIN_GPIO(104), 	MFP_PIN_MODE_GPIO},
+ 	{MFP_PIN_GPIO(102), 	MFP_PIN_MODE_GPIO},
++    {MFP_PIN_GPIO(230),     MFP_PIN_MODE_GPIO},//xqf
++    {MFP_PIN_GPIO(142),     MFP_PIN_MODE_GPIO},//xqf
+ };
+ 
+ static struct mfp_pull_cfg comip_mfp_pull_cfg[] = {
+@@ -465,7 +467,8 @@
+ 	{MFP_PIN_GPIO(102), 	MFP_PULL_DOWN},
+ 	{MFP_PIN_GPIO(167), 	MFP_PULL_DISABLE},
+ 	{MFP_PIN_GPIO(168), 	MFP_PULL_DISABLE},
+-	{MFP_PIN_GPIO(230), 	MFP_PULL_DOWN},
++    {MFP_PIN_GPIO(230),     MFP_PULL_UP},//xqf
++    {MFP_PIN_GPIO(142),     MFP_PULL_UP},//xqf
+ 	{MFP_PIN_GPIO(234), 	MFP_PULL_DOWN},
+ 	{MFP_PIN_GPIO(235), 	MFP_PULL_DOWN},
+ 	{MFP_PIN_GPIO(236), 	MFP_PULL_DOWN},
+Index: kernel/linux-3.10/arch/arm/mach-lc186x/board/board-common.c
+===================================================================
+--- kernel/linux-3.10/arch/arm/mach-lc186x/board/board-common.c	(版本 8)
++++ kernel/linux-3.10/arch/arm/mach-lc186x/board/board-common.c	(版本 11)
+@@ -197,7 +197,7 @@
+ static int codec_bt_switch(int sel)
+ {
+ 	int pcm1_tx = mfp_to_gpio(MFP_PIN_GPIO(187));
+-	int pcm0_tx = mfp_to_gpio(MFP_PIN_GPIO(80));
++	int pcm0_tx = mfp_to_gpio(MFP_PIN_GPIO(80));//xqf
+ 	int val;
+ 	if (sel == 0x1) { /* codec */
+ 		comip_mfp_config(MFP_PIN_GPIO(187), MFP_PIN_MODE_GPIO);
+@@ -204,7 +204,7 @@
+ 		gpio_request(pcm1_tx, "PCM1 TX");
+ 		gpio_direction_output(pcm1_tx, 0);
+ 		gpio_free(pcm1_tx);
+-		comip_mfp_config(MFP_PIN_GPIO(80), MFP_PIN_MODE_0);
++		//comip_mfp_config(MFP_PIN_GPIO(80), MFP_PIN_MODE_0);//xqf
+ 
+ 		val = readl(io_p2v(MUXPIN_PCM_IO_SEL));
+ 		val &= ~0x01;
+@@ -211,7 +211,7 @@
+ 		writel(val, io_p2v(MUXPIN_PCM_IO_SEL));
+ 		printk(KERN_DEBUG "codec_bt_switch: CODEC\n");
+ 	} else if (sel == 0x0) { /* bt */
+-		comip_mfp_config(MFP_PIN_GPIO(80), MFP_PIN_MODE_GPIO);
++		comip_mfp_config(MFP_PIN_GPIO(80), MFP_PIN_MODE_GPIO);//xqf
+ 		gpio_request(pcm0_tx, "PCM0 TX");
+ 		gpio_direction_output(pcm0_tx, 1);
+ 		gpio_free(pcm0_tx);
+@@ -564,12 +564,18 @@
+ 	{MFP_PIN_GPIO(69), MFP_PIN_MODE_0}, /* clk */
+ 	{MFP_PIN_GPIO(70), MFP_PIN_MODE_0}, /* io */
+ 	{MFP_PIN_GPIO(71), MFP_PIN_MODE_0}, /* rst */
++
++    /* xqf S17102CODEC CTL4,2,1,3 */
++    {MFP_PIN_GPIO(80),     MFP_PIN_MODE_GPIO},
++    {MFP_PIN_GPIO(81),     MFP_PIN_MODE_GPIO},
++    {MFP_PIN_GPIO(82),     MFP_PIN_MODE_GPIO},
++    {MFP_PIN_GPIO(83),     MFP_PIN_MODE_GPIO},
+ #if defined(CONFIG_SND_LC186X_SOC)
+ 	/* PCM0. */
+-	{MFP_PIN_GPIO(80),	MFP_PIN_MODE_0}, /* tx */
+-	{MFP_PIN_GPIO(81),	MFP_PIN_MODE_0}, /* rx */
+-	{MFP_PIN_GPIO(82),	MFP_PIN_MODE_0}, /* clk */
+-	{MFP_PIN_GPIO(83),	MFP_PIN_MODE_0}, /* ssn */
++	//{MFP_PIN_GPIO(80),	MFP_PIN_MODE_0}, /* tx *///xqf
++	//{MFP_PIN_GPIO(81),	MFP_PIN_MODE_0}, /* rx *///xqf
++	//{MFP_PIN_GPIO(82),	MFP_PIN_MODE_0}, /* clk *///xqf
++	//{MFP_PIN_GPIO(83),	MFP_PIN_MODE_0}, /* ssn *///xqf
+ 	/* PCM1. */
+ 	{MFP_PIN_GPIO(187),	MFP_PIN_MODE_0}, /* tx */
+ 	{MFP_PIN_GPIO(188),	MFP_PIN_MODE_0}, /* rx */
+@@ -585,12 +591,17 @@
+ 	{MFP_PIN_GPIO(184),	MFP_GPIO184_UART2_RX_GPIO},
+ };
+ static struct mfp_pull_cfg comip_common_mfp_pull_cfg[] = {
++    /* xqf S17102CODEC CTL4,2,1,3 */
++    {MFP_PIN_GPIO(80),     MFP_PULL_UP},
++    {MFP_PIN_GPIO(81),     MFP_PULL_DOWN},
++    {MFP_PIN_GPIO(82),     MFP_PULL_UP},
++    {MFP_PIN_GPIO(83),     MFP_PULL_DOWN},
+ #if defined(CONFIG_SND_LC186X_SOC)
+ 	/* PCM0. */
+-	{MFP_PIN_GPIO(83),	MFP_PULL_DISABLE},
+-	{MFP_PIN_GPIO(82),	MFP_PULL_DISABLE},
+-	{MFP_PIN_GPIO(81),	MFP_PULL_DISABLE},
+-	{MFP_PIN_GPIO(80),	MFP_PULL_DISABLE},
++	//{MFP_PIN_GPIO(83),	MFP_PULL_DISABLE},//xqf
++	//{MFP_PIN_GPIO(82),	MFP_PULL_DISABLE},//xqf
++	//{MFP_PIN_GPIO(81),	MFP_PULL_DISABLE},//xqf
++	//{MFP_PIN_GPIO(80),	MFP_PULL_DISABLE},//xqf
+ 	/* PCM1. */
+ 	//{MFP_PIN_GPIO(190),	MFP_PULL_UP},
+ 	//{MFP_PIN_GPIO(189),	MFP_PULL_DISABLE},
+@@ -648,6 +659,7 @@
+ #if defined(CONFIG_SERIAL_COMIP) || defined(CONFIG_SERIAL_COMIP_MODULE)
+ /* GPS & BT.*/
+ static struct comip_uart_platform_data comip_uart1_info = {
++#if 0/* xqf del */
+ #if defined(CONFIG_GPS_UBLOX)  //u-blox use uart without flow ctrl
+ 	.flags = COMIP_UART_TX_USE_DMA | COMIP_UART_RX_USE_DMA,
+ #else
+@@ -654,8 +666,17 @@
+ 	.flags = COMIP_UART_TX_USE_DMA | COMIP_UART_RX_USE_DMA \
+ 			| COMIP_UART_SUPPORT_MCTRL,
+ #endif
+ //xuyao tongguo usb-series jiejue
++#endif
++#if 0/* xqf add */
++    .flags = COMIP_UART_USE_WORKQUEUE,/* disable the RTS/CTS flow control */
++#else
++	.flags = COMIP_UART_TX_USE_DMA | COMIP_UART_RX_USE_DMA \
++			| COMIP_UART_SUPPORT_MCTRL,/* enable the RTS/CTS flow control */
++            
++#endif
+ };
+ 
++
+ /*BT*/
+ //delete
+ static int comip_bt_uart_power(void *param, int onoff)
+ {
+Index: kernel/linux-3.10/arch/arm/plat-lc/drivers/sound/codecs/lc1160_codec.c
+===================================================================
+--- kernel/linux-3.10/arch/arm/plat-lc/drivers/sound/codecs/lc1160_codec.c	(版本 8)
++++ kernel/linux-3.10/arch/arm/plat-lc/drivers/sound/codecs/lc1160_codec.c	(版本 11)
+@@ -461,7 +461,7 @@
+ 	case 1:
+ 		/*	pcm,send data after one clk,sel extclk,
+ 			  short frame sync, 16fs,master mode  */
+-		snd_soc_write(codec, LC1160_R12, 0x51);
++		snd_soc_write(codec, LC1160_R12, 0x50);//xqf mdf
+ 		break;
+ 	default:
+ 		BUG();
+Index: hardware/leadcore/audio/lc1160/audio_hw.c
+===================================================================
+--- hardware/leadcore/audio/lc1160/audio_hw.c	(版本 8)
++++ hardware/leadcore/audio/lc1160/audio_hw.c	(版本 11)
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++//#define VOICE_SUPPORT_DOUBLE_DMIC_MODE//xqf add
++
+ #define LOG_TAG "audio_hw_primary"
+ #define LOG_NDEBUG 0
+ 
+@@ -822,6 +824,7 @@
+     ALOGE("Opening modem PCMs");
+ 
+     pcm_config_vx.rate = adev->wb_amr ? VX_WB_SAMPLING_RATE : VX_NB_SAMPLING_RATE;
++    ALOGE("xqf wb_amr: %d,rate: %d", adev->wb_amr, pcm_config_vx.rate);/* xqf add */
+ 
+     /* Open modem PCM channels */
+     if (adev->pcm_modem_dl == NULL) {
+@@ -890,12 +893,12 @@
+             }
+             start_call(adev);
+             mixer_ctl_set_value(adev->mixer_ctls.dual_mic_switch, 0, 0);
+-            mixer_ctl_set_value(adev->mixer_ctls.pcm_32bitclk_switch, 0, 0);
++            //mixer_ctl_set_value(adev->mixer_ctls.pcm_32bitclk_switch, 0, 0);//xqf del
+             mixer_ctl_set_enum_by_string(adev->mixer_ctls.mono_dac_input, "PCML");
+             mixer_ctl_set_enum_by_string(adev->mixer_ctls.pcm_out_left_sel, "ADC1");
+             if(adev->multi_mic) {
+ 	  mixer_ctl_set_value(adev->mixer_ctls.dual_mic_switch, 0, 1);
+-	  mixer_ctl_set_value(adev->mixer_ctls.pcm_32bitclk_switch, 0, 1);
++                //mixer_ctl_set_value(adev->mixer_ctls.pcm_32bitclk_switch, 0, 1);//xqf del
+                 mixer_ctl_set_enum_by_string(adev->mixer_ctls.pcm_out_right_sel, "ADC2");
+             }
+             adev->in_call = 1;
+@@ -1083,7 +1086,39 @@
+             } else if(bt_on) {
+                 get_voice_Tbl(&adev->ril, RIL_VTBL_DEV_BLUETOOTH, &adev->vx_cali_param, VX_TBL_LEN);
+             }
+-
++/* zkj begin */
++adev->vx_cali_param.flag=0xaaaaaaaa;
++adev->vx_cali_param.length=0x400;
++adev->vx_cali_param.network=0x2;
++adev->vx_cali_param.channel=0x1;
++adev->vx_cali_param.scene=0x0;
++adev->vx_cali_param.currentVolume=0x0;
++adev->vx_cali_param.reserve=0x0;
++adev->vx_cali_param.gain_in_link0_level0=0x1;
++adev->vx_cali_param.gain_in_link0_level1=0x21;
++adev->vx_cali_param.gain_in_link0_level2=0x7f;
++adev->vx_cali_param.gain_in_link0_level3=0x0;
++adev->vx_cali_param.gain_in_link1_level0=0x1;
++adev->vx_cali_param. gain_in_link1_level1=0x24;
++adev->vx_cali_param.gain_in_link1_level2=0x7f;
++adev->vx_cali_param.gain_in_link1_level3=0x0;
++adev->vx_cali_param.gain_in_link2_level0=0x0;
++adev->vx_cali_param.gain_in_link2_level1=0x0;
++adev->vx_cali_param.gain_in_link2_level2=0x0;
++adev->vx_cali_param.gain_in_link2_level3=0x0;
++adev->vx_cali_param.gain_out_level0_class0=0x4b;
++adev->vx_cali_param.gain_out_level0_class1=0x4f;
++adev->vx_cali_param.gain_out_level0_class2=0x53;
++adev->vx_cali_param.gain_out_level0_class3=0x57;
++adev->vx_cali_param.gain_out_level0_class4=0x5d;
++adev->vx_cali_param.gain_out_level0_class5=0x63;
++adev->vx_cali_param.gain_out_level1=0x1f;
++adev->vx_cali_param.gain_out_level2=0x0;
++adev->vx_cali_param.gain_out_level3=0x0;
++adev->vx_cali_param.gain_out_level4=0x0;
++adev->vx_cali_param.gain_out_level5=0x0;
++adev->vx_cali_param.gain_out_level6=0x0;
++/* zkj end */
+ 	ALOGV("flag:0x%x\n"
+ 		"length:0x%x\n"
+ 		"network:0x%x\n"
+@@ -4410,7 +4445,7 @@
+     adev->out_device = AUDIO_DEVICE_OUT_SPEAKER;
+     adev->old_out_device = adev->out_device;
+     adev->in_device = AUDIO_DEVICE_IN_BUILTIN_MIC & ~AUDIO_DEVICE_BIT_IN;
+-    adev->wb_amr = 1;
++    adev->wb_amr = 0;/* xqf mdf */
+     adev->vx_vol_step= 3;
+     adev->tty_mode = TTY_MODE_OFF;
+     adev->bluetooth_nrec = true;
+Index: leadcore/service/radio_config/at.c
+===================================================================
+--- leadcore/service/radio_config/at.c	(版本 8)
++++ leadcore/service/radio_config/at.c	(版本 11)
+@@ -257,10 +257,13 @@
+                 pos += rsp_len;
+             }
+ 
+-            if(isFinalReponse(rsp_buf_a)) {
++            //if(isFinalReponse(rsp_buf_a)) {
++			if(isFinalReponse(p_outResponse)) {
++				RLOGE("I'm break!");
+                 break;
+             }
+         }
++		//RLOGE("ret_val:%d",ret_val);
+     }
+ 
+     return ret_val;
+@@ -301,17 +304,29 @@
+     char    rsp_at_a[255] = "";
+     int     len = 0;
+ 
+-    if( fd <= 0 || !at_ptr || !p_isOk ) {
+-        RLOGE("%s() parameter error: %d, %d, %d", __func__, (fd <= 0), (!at_ptr), (!p_isOk));
++    if( fd <= 0) {
++        RLOGE("%s() parameter error: %d", __func__,fd);
+         return -1;
+     }
++
++    if ( at_ptr == NULL )
++    {
++        RLOGE("%s() parameter invalid at_ptr", __func__);
++    }
++
++    if ( p_isOk == NULL )
++    {
++        RLOGE("%s() parameter invalid p_isOk", __func__);
++    }
++
+     if(strlen(at_ptr) == 0) {
+-        RLOGE("%s() parameter error: %d", __func__, (strlen(at_ptr) == 0));
++        RLOGE("%s() parameter error,strlen(at_ptr) == 0", __func__);
+         return -1;
+     }
+ 
+     *p_isOk = 0;
+     ret = sendAtSync(fd, at_ptr, rsp_at_a, sizeof(rsp_at_a));
++    
+     if( strstr(rsp_at_a, "\r\nOK\r\n") ) {
+         *p_isOk = 1;
+     }
+@@ -320,6 +335,7 @@
+         len = strlen(rsp_at_a);
+         if(len > outResponseSize)   len = outResponseSize;
+         strncpy(p_outResponse, rsp_at_a, len);
++        
+     }
+ 
+     return ret;
+Index: leadcore/service/radio_config/main.c
+===================================================================
+--- leadcore/service/radio_config/main.c	(版本 8)
++++ leadcore/service/radio_config/main.c	(版本 11)
+@@ -29,6 +29,8 @@
+ #include <stdlib.h>
+ #include <ctype.h>
+ #include <stdio.h>
++#include <string.h>
++#include <termios.h>
+ 
+ #include <sys/system_properties.h>
+ 
+@@ -39,8 +41,11 @@
+ #include "config.h"
+ #include "util.h"
+ 
++#define RADIO_LOGI(fmt, args...)  RLOGI("%s():"fmt, __FUNCTION__,##args)
++#define RADIO_LOGD(fmt, args...)  RLOGD("%s():"fmt, __FUNCTION__,##args)
++#define RADIO_LOGE(fmt, args...)  RLOGE("%s():"fmt, __FUNCTION__,##args)
++#define RADIO_ENTER() RADIO_LOGD("enter into")  
+ 
+-
+ /*---------------------- external variable declaration -----------------------*/
+ 
+ 
+@@ -51,6 +56,10 @@
+ 
+ /*----------------------- file-local macro definition ------------------------*/
+ 
++#define MODEM_TYPE_LTE     (0)
++#define MODEM_TYPE_SAT     (1)
++#define MODEM_TYPE_DEBUG   (4)
++
+ /* Config file of all RILDs, it will be used by RILD.
+  * NOTE: the path should be created by "init.rc". */
+ #define RILD_CONFIG_FILE                        "/data/leadcore/radio/rild.cfg"
+@@ -83,7 +92,7 @@
+ 
+ #define PROPERTY_PERSIST_SYS_LC_MSMS            "persist.sys.lc.msms"
+ #define PROPERTY_RO_LC_MSMS                     "ro.lc.msms"
+-#define PROPERTY_DEFAULT_VALUE_LC_MSMS          "111"
++#define PROPERTY_DEFAULT_VALUE_LC_MSMS          "1111"
+ 
+ #define PROPERTY_PERSIST_SYS_LC_STANDBY_RAT     "persist.sys.lc.standby.rat"
+ #define PROPERTY_RO_LC_STANDBY_RAT              "ro.lc.standby.rat"
+@@ -168,11 +177,10 @@
+ } RIL_PreferredNetworkType;
+ 
+ 
+-
+ /*----------------- file-local constant and type definition ------------------*/
+ 
+ static const char   *AT_DEVICE[MAX_STANDBY_COUNT] = {
+-    "/dev/TTYEMS40",
++	"/dev/TTYEMS03",
+     "/dev/TTYEMS41"
+ };
+ 
+@@ -215,6 +223,9 @@
+ static int initAtDevice(void);
+ static int deinitAtDevice(int isCloseOnly);
+ 
++static int initSatAtDevice(void);
++static int deinitSatAtDevice(void);
++
+ static int queryCardInfoID(int fdAt, SIM_CARD_INFO_ST * sim_card_info_ptr);
+ static int queryCardInfoIMSI(int fdAt, SIM_CARD_INFO_ST * sim_card_info_ptr);
+ static int queryCardInfoType(int fdAt, SIM_CARD_INFO_ST * sim_card_info_ptr);
+@@ -260,7 +271,7 @@
+ SAVED_CARD_INFO_ST  saved_card_info_st;
+ 
+ /* From PROPERTY_PERSIST_SYS_LC_MSMS. */
+-static int  simCount = 0, standbyCount = 0, communicationCount = 0;
++static int  simCount = 0, standbyCount = 0, communicationCount = 0, modemType = 0;
+ 
+ /* From PROPERTY_PERSIST_SYS_LC_DYNAMIC_RAT. */
+ static int  isDynamicRat = 0;
+@@ -470,6 +481,10 @@
+     return 0;
+ }
+ 
++static int deinitSatAtDevice(void) {
++	return 0;
++}
++
+ /*******************************************************************************
+  * Function: queryCardInfoID
+  * -----------------------------------------------------------------------------
+@@ -856,6 +871,28 @@
+     return 0;
+ }
+ 
++
++static int updateMncCscc(void) {
++	char    propValue[PROP_VALUE_MAX] = "";
++	int     arraySize = sizeof(MNC_CMCC) / sizeof(MNC_CMCC[0]);
++	int     i = 0;
++	char    *result = NULL;
++
++	getProp(PROPERTY_RO_LC_MNC_CMCC, propValue, PROPERTY_DEFAULT_VALUE_LC_MNC_CMCC);
++
++	i = 0;
++	result = strtok(propValue, ",");
++	while(result != NULL && i < arraySize) {
++		snprintf(MNC_CMCC[i], sizeof(MNC_CMCC[i]) - 1, "%s", result);
++		i++;
++		result = strtok(NULL, ",");
++	}
++	if(i < arraySize) {
++		memset(MNC_CMCC[i], 0x00, sizeof(MNC_CMCC[i]));
++	}
++
++	return 0;
++}
+ /*******************************************************************************
+  * Function: checkSavedCardInfo
+  * -----------------------------------------------------------------------------
+@@ -1016,6 +1053,43 @@
+  *     (none)
+  *
+  ******************************************************************************/
++void stopService(char *srvName,char* proName)
++{    
++    char    propValue[PROP_VALUE_MAX] = "";
++
++    
++    if ( srvName == NULL || proName == NULL)
++    {
++        RADIO_LOGE("stopService:invalid ptr");
++        return;
++    }
++    memset(propValue, 0, sizeof(propValue));
++    getProp(srvName, propValue, "stopped");
++    if (0 != strcmp(propValue, "stopped")) {
++        setProp("ctl.stop", proName, 5);
++    }
++
++    return;
++}
++void startService(char *srvName,char* proName)
++{    
++    char    propValue[PROP_VALUE_MAX] = "";
++
++    if ( srvName == NULL || proName == NULL)
++    {
++        RADIO_LOGE("startService:invalid ptr");
++        return;
++    }
++    memset(propValue, 0, sizeof(propValue));
++    getProp(srvName, propValue, "stopped");
++    if (0 == strcmp(propValue, "stopped")) {
++        setProp("ctl.start", proName, 5);
++        usleep(100*1000);
++    }
++
++    return;
++}
++
+ static int startRildService(void) {
+     char    propValue[PROP_VALUE_MAX] = "";
+     char    daemonName[32] = "";
+@@ -1081,6 +1155,65 @@
+     return 0;
+ }
+ 
++
++static int startSatRildService(void) {
++	char    propValue[PROP_VALUE_MAX] = "";
++	char    daemonName[32] = "";
++	int     i = 0, j = 0;
++	FILE    *fp = NULL;
++	char    configFile[80] = "";
++	int     otherCardStatus = CARD_STATUS_ABSENT;
++	int     otherCardLocal = CARD_LOCALE_UNKNOWN;
++
++	/* Write the config info for RILD. */
++	snprintf(configFile, sizeof(configFile) - 1, "%s%d", RILD_CONFIG_FILE, 1); //rild1
++	if((fp = fopen(configFile, "w")) != NULL) {
++		fprintf(fp, "rild.count = %d\n", 1);
++		fprintf(fp, "rild.simSlot = %d\n", 1);
++		fprintf(fp, "rild.cardStatus = %d\n", CARD_STATUS_EXIST);
++		fprintf(fp, "rild.cardType = %d\n", CARD_TYPE_USIM);
++		fprintf(fp, "rild.cardLocale = %d\n", CARD_LOCALE_CMCC);
++		//fprintf(fp, "rild.cardLocale = %d\n", CARD_LOCALE_CHINA_OTHERS);
++		fprintf(fp, "rild.cardID = %s\n", "89860082190103413948");
++		//fprintf(fp, "rild.rat = %d\n", RAT_GSM);
++		fprintf(fp, "rild.rat = %d\n", 7);
++		//fprintf(fp, "rild.actualRat = %d\n", RAT_GSM);
++		fprintf(fp, "rild.actualRat = %d\n", 1);
++		fprintf(fp, "rild.rat.DSTMEX = %s\n", "1,0");
++		fprintf(fp, "rild.cs = %d\n", 1);
++		fprintf(fp, "rild.ps = %d\n", 1);
++
++		otherCardStatus = CARD_STATUS_ABSENT;
++		otherCardLocal = CARD_LOCALE_UNKNOWN;
++		otherCardLocal = CARD_LOCALE_CMCC;
++		fprintf(fp, "rild.cardStatus.other = %d\n", otherCardStatus);
++		fprintf(fp, "rild.cardLocale.other = %d\n", otherCardLocal);
++
++		fclose(fp);
++	} else {
++		RLOGE("write RILD config file \"%s\" failed.", configFile);
++	}
++
++	memset(propValue, 0, sizeof(propValue));
++	memset(daemonName, 0, sizeof(daemonName));
++	sprintf(daemonName, "init.svc.rild%d", 1);
++	getProp(daemonName, propValue, "stopped");
++	if (0 == strcmp(propValue, "stopped")) {
++		memset(propValue, 0, sizeof(propValue));
++		sprintf(propValue, "rild%d", 1);
++		setProp("ctl.start", propValue, 5);
++		usleep(100*1000);
++	}
++
++	getProp("persist.sys.calls.on.ims", propValue, "false");
++	if(strcmp(propValue, "true") == 0) {
++		setProp("ctl.start", "iild", 5);
++	}
++
++	return 0;
++}
++
++
+ /*******************************************************************************
+  * Function: stopRildService
+  * -----------------------------------------------------------------------------
+@@ -1801,18 +1934,16 @@
+ }
+ 
+ /*******************************************************************************
+- * Function: convertDual2Single
++ * Function: convertSSC
+  * -----------------------------------------------------------------------------
+  * Purpose:
+  * ----------------------------
+- *     Convert the property PROPERTY_PERSIST_SYS_LC_MSMS to
+- *     PROPERTY_RO_LC_MSMS.
++ *     Convert the property MSMS_CONFIG_FILE_NAME to
++ *     PROPERTY_PERSIST_SYS_LC_MSMS.
+  *
+  * Used variables:
+  * ----------------------------
+- *     simCount
+- *     standbyCount
+- *     communicationCount
++ *     (none)
+  *
+  * Params:
+  * ----------------------------
+@@ -1837,8 +1968,8 @@
+ 
+     /* Try to read the property from AMT file. */
+     if(fp != NULL) {
+-        if(fread(propValue, 3, 1, fp) == 1) {
+-            if(isdigit(propValue[0]) && isdigit(propValue[1]) && isdigit(propValue[2])) {
++		if(fread(propValue, 4, 1, fp) == 1) {
++			if(isdigit(propValue[0]) && isdigit(propValue[1]) && isdigit(propValue[2]) && isdigit(propValue[3])) {
+                 isFromFile = 1;
+             }
+         }
+@@ -1846,9 +1977,10 @@
+ 
+         /* Remove the flag file since we will not use it. */
+         if(remove(MSMS_CONFIG_FILE_NAME) != 0) {
+-            RLOGE("Remove file \"%s\" fail: %d - %s", MSMS_CONFIG_FILE_NAME, errno, strerror(errno));
++			RADIO_LOGE("Remove file \"%s\" fail: %d - %s", MSMS_CONFIG_FILE_NAME, errno, strerror(errno));
+         }
+     }
++
+     if(0 == isFromFile) {
+         /* Convert the property of "(U)SIM/standby/communication" from "persist.sys." to "ro." */
+         getProp(PROPERTY_PERSIST_SYS_LC_MSMS, propValue, PROPERTY_DEFAULT_VALUE_LC_MSMS);
+@@ -1855,15 +1987,33 @@
+     } else {
+         /* Use the config saved in file, and write the config to "persist." property
+          * since "Assistant" will use it. */
+-        setProp(PROPERTY_PERSIST_SYS_LC_MSMS, propValue, 3);
++		setProp(PROPERTY_PERSIST_SYS_LC_MSMS, propValue, 4);
+     }
+ 
+-    setProp(PROPERTY_RO_LC_MSMS, propValue, 3);
++	setProp(PROPERTY_RO_LC_MSMS, propValue, 4);
+ 
+     simCount            = (propValue[0] - '0') <= MAX_SIM_COUNT             ? (propValue[0] - '0') : MAX_SIM_COUNT;
+     standbyCount        = (propValue[1] - '0') <= MAX_STANDBY_COUNT         ? (propValue[1] - '0') : MAX_STANDBY_COUNT;
+     communicationCount  = (propValue[2] - '0') <= MAX_COMMUNICATION_COUNT   ? (propValue[2] - '0') : MAX_COMMUNICATION_COUNT;
+ 
++	RADIO_LOGE("=====>propValue[3] - %c", propValue[3]);
++	//Hwa SSC
++	if(propValue[3] == '4') {
++		modemType = MODEM_TYPE_DEBUG;
++	} else if(propValue[3] == '1') {
++		modemType = MODEM_TYPE_SAT;
++	} else if(propValue[3] == '0') {
++		modemType = MODEM_TYPE_LTE;
++	}
++
++	simCount = 1;
++	standbyCount = 1;
++	communicationCount =1;
++	RADIO_LOGI("convertSSC->simCount:           %d",simCount);
++	RADIO_LOGI("convertSSC->standbyCount:       %d",standbyCount);
++	RADIO_LOGI("convertSSC->communicationCount: %d",communicationCount);
++	RADIO_LOGI("convertSSC->modemType:          %d",modemType);
++
+     return 0;
+ }
+ 
+@@ -2377,6 +2527,338 @@
+     RLOGD("close ps lmi device");
+ }
+ 
++//==================================================================================
++//Hwa SAT Begin
++//==================================================================================
++typedef enum 
++{
++	ENCIPHER_CARD_INVALID = 0,
++	ENCIPHER_CARD_MACHINE_ERROR,
++	ENCIPHER_CARD_PWD_DESTROYED,
++	ENCIPHER_CARD_NO_POWERON_STICK,
++	ENCIPHER_CARD_START_SUCC    
++}encipherCardEnum;
++
++#define DEVICE_UART_AT_INIT     "/dev/ttyS1"
++#define DEVICE_RX_FLAG0    0   
++#define DEVICE_RX_FLAG1    1   
++#define DEVICE_RX_FLAG2    2   
++#define DEVICE_RX_FLAG3    3  
++
++static char readBufAT_INIT[1024] = {0};  
++static int lenReadBufAT = 0;
++static char read_flag = 0;
++static int UartFd_INIT = 0; 
++static int g_ReadCount_INIT= 0;
++
++int strStartsWith(const char *line, const char *prefix)
++{
++	for ( ; *line != '\0' && *prefix != '\0' ; line++, prefix++) {
++		if (*line != *prefix) {
++			return 0;
++		}
++	}
++
++	return *prefix == '\0';
++}
++
++static encipherCardEnum queryEncipherCardStatus(int fd_init)
++{
++	int read_num;
++	int i = 0;
++	char AtInd[1024] = {0};
++	char *processBuf;
++	encipherCardEnum result = ENCIPHER_CARD_INVALID;
++	char    propValue[PROP_VALUE_MAX] = "";
++
++	while(1)
++	{
++		read_num = read(fd_init, AtInd, 1024);
++		if(read_num < 0)
++		{
++			RADIO_LOGD("queryEncipherCardStatus: read error!");
++		}
++
++		if(read_num > 0)
++		{
++			for( i=0; i<read_num; i++)
++			{
++				RLOGD("TTL_InitAtCmd[%d],V=%c",i,AtInd[i]);
++			}
++
++			processBuf = AtInd;
++
++			for( i=0; i<read_num; i++)
++			{   
++				if( DEVICE_RX_FLAG0 == read_flag )
++				{
++					if( '\r' == processBuf[i] )
++					{
++						read_flag = DEVICE_RX_FLAG1;
++					}
++				}
++				else if( DEVICE_RX_FLAG1 == read_flag )
++				{
++					if( '\n' == processBuf[i] )
++					{
++						read_flag = DEVICE_RX_FLAG2;
++					}
++				}
++				else if( DEVICE_RX_FLAG2 == read_flag )
++				{
++					if( '\r' != processBuf[i] )
++					{
++						readBufAT_INIT[lenReadBufAT++] = processBuf[i];
++					}
++					else
++					{
++						readBufAT_INIT[lenReadBufAT] = '\0';
++						read_flag = DEVICE_RX_FLAG3;
++					}
++				}
++				else if( DEVICE_RX_FLAG3 == read_flag )
++				{
++					if( '\n' == processBuf[i] )
++					{
++						RLOGD("AT_INIT_RxCom: %s\n",readBufAT_INIT); 
++
++						read_flag = DEVICE_RX_FLAG0;
++
++						/* A total completed cmd had been received, We can start to analyze it*/
++						if (strStartsWith(readBufAT_INIT, "+CCMPQR:"))
++						{
++							result = ENCIPHER_CARD_START_SUCC;
++						}
++						else if (strStartsWith(readBufAT_INIT, "+CCMERR:"))
++						{
++							/* return the responding error result */
++							switch( readBufAT_INIT[9] )
++							{
++								case '0':
++									result = ENCIPHER_CARD_MACHINE_ERROR;
++									break;
++								case '1':
++									result = ENCIPHER_CARD_PWD_DESTROYED;
++									break;
++								case '2':
++									result = ENCIPHER_CARD_NO_POWERON_STICK;
++									break;
++							}
++						}
++						memset(readBufAT_INIT, 0, 1024);
++						if( ENCIPHER_CARD_START_SUCC == result )
++							return result;
++					}
++				}
++			}
++			memset(AtInd, 0, 1024);           
++		} 
++		else if( 0 == read_num )
++		{
++			g_ReadCount_INIT++;
++			RLOGE("queryEncipherCardStatus: no data read from the device, g_ReadCount = %d !!!!!", g_ReadCount_INIT);
++		}
++		else
++		{
++			g_ReadCount_INIT++;
++			RLOGE("queryEncipherCardStatus: read buffer error, g_ReadCount = %d !!!!!", g_ReadCount_INIT);
++		}
++	}
++}
++
++static int querySIMCardStart(int fd_init)
++{
++	int read_num;
++	int i = 0;
++	char AtInd[1024] = {0};
++	char *processBuf;
++	encipherCardEnum result = ENCIPHER_CARD_INVALID;
++	char    propValue[PROP_VALUE_MAX] = "";
++
++	RADIO_LOGE("querySIMCardStart========");
++	while(1)
++	{
++		read_num = read(fd_init, AtInd, 1024);
++		if(read_num < 0)
++		{
++			RADIO_LOGE("querySIMCardStart: read error!");
++		}
++
++		if(read_num > 0)
++		{
++			processBuf = AtInd;
++
++			for( i=0; i<read_num; i++)
++			{   
++				if( DEVICE_RX_FLAG0 == read_flag )
++				{
++					if( '\r' == processBuf[i] )
++					{
++						read_flag = DEVICE_RX_FLAG1;
++					}
++				}
++				else if( DEVICE_RX_FLAG1 == read_flag )
++				{
++					if( '\n' == processBuf[i] )
++					{
++						read_flag = DEVICE_RX_FLAG2;
++					}
++				}
++				else if( DEVICE_RX_FLAG2 == read_flag )
++				{
++					if( '\r' != processBuf[i] )
++					{
++						readBufAT_INIT[lenReadBufAT++] = processBuf[i];
++					}
++					else
++					{
++						readBufAT_INIT[lenReadBufAT] = '\0';
++						read_flag = DEVICE_RX_FLAG3;
++					}
++				}
++				else if( DEVICE_RX_FLAG3 == read_flag )
++				{
++					if( '\n' == processBuf[i] )
++					{
++						RLOGD("AT_INIT_RxCom: %s\n",readBufAT_INIT); 
++
++						read_flag = DEVICE_RX_FLAG0;
++
++						/* A total completed cmd had been received, We can start to analyze it*/
++						if (strStartsWith(readBufAT_INIT, "^SIMTYPE:"))
++						{
++							return 0;
++						}
++						memset(readBufAT_INIT, 0, 1024);
++
++						if( ENCIPHER_CARD_START_SUCC == result )
++							return result;
++
++					}
++
++				}
++			}
++			memset(AtInd, 0, 1024);           
++		} 
++		else if( 0 == read_num )
++		{
++			g_ReadCount_INIT++;
++			RLOGE("queryEncipherCardStatus: no data read from the device, g_ReadCount = %d !!!!!", g_ReadCount_INIT);
++		}
++		else
++		{
++			g_ReadCount_INIT++;
++			RLOGE("queryEncipherCardStatus: read buffer error, g_ReadCount = %d !!!!!", g_ReadCount_INIT);
++		}
++	}
++}
++
++typedef signed long int SINT32;
++void set_serial_dev_attr( int fd )
++{
++	int ret_val = 0;
++	struct termios  ios;
++	speed_t speed = B115200;
++
++	ret_val = tcgetattr( fd, &ios );
++	//CHECK_SYS_ERR( ret_val, "tcgetattr" );
++
++	/* Set the baudrate. */
++	if( !ret_val )
++	{
++		ret_val = cfsetispeed( &ios, speed );
++		//CHECK_SYS_ERR( ret_val, "cfsetispeed" );
++		RADIO_LOGE("set_serial_dev_attr(),cfsetispeed OK\n");
++	}
++	if( !ret_val)
++	{
++		ret_val = cfsetospeed( &ios, speed );
++		//CHECK_SYS_ERR( ret_val, "cfsetospeed" );
++		RADIO_LOGE("set_serial_dev_attr(), cfsetospeed OK\n");
++	}
++
++	ios.c_iflag &= ~INLCR;  /* do not change '\n' to '\r' */
++	ios.c_iflag &= ~ICRNL;  /* do not change '\r' to '\n' */
++	ios.c_iflag &= ~IXON;   /* disable start/stop output control */
++	ios.c_lflag = 0;        /* disable ECHO, ICANON, etc... */
++	ios.c_oflag &= ~ONLCR;  /* do not change '\n' to '\r' '\n' */
++	ios.c_oflag &= ~OCRNL;  /* do not change '\n' to '\r' */
++	/* BEGIN: Added for PN:s_project */
++	ios.c_cflag &= ~CSIZE;
++	ios.c_cflag |= CS8;     
++	ios.c_cflag &= ~PARENB;    /* Clear parity enable */
++	ios.c_iflag &= ~INPCK;    /* Enable parity checking */     
++	ios.c_cflag &= ~CSTOPB;     
++#if 1//xqf
++    ios.c_cflag |= CRTSCTS;                     /* enable the RTS/CTS flow control */
++#else
++    ios.c_cflag &= ~CRTSCTS;                    /* disable the RTS/CTS flow control */
++#endif
++	tcflush(fd, TCIFLUSH);
++	/* END:  Added for PN:s_project */
++	if( !ret_val)
++	{
++		ret_val = tcsetattr( fd, TCSANOW, &ios );
++		RADIO_LOGE("set_serial_dev_attr() ,tcsetattr OK\n");
++	}
++}
++
++
++static int initSatAtDevice(void) {
++	int     nRead = 0;
++	void*   pData = NULL;
++	struct termios  options;
++	encipherCardEnum enumRlt = ENCIPHER_CARD_INVALID;
++
++	RADIO_LOGD("waitQuerySecureCard\n");
++
++	//UART open
++	if(0 > (UartFd_INIT = open(DEVICE_UART_AT_INIT, O_RDWR)))
++	{
++		RADIO_LOGD("open Device_%s error!!!\n",DEVICE_UART_AT_INIT);
++		exit(EXIT_FAILURE);
++	}
++
++	RADIO_LOGD("Open Device_%s ok\n",DEVICE_UART_AT_INIT);
++
++	set_serial_dev_attr(UartFd_INIT);
++
++	RADIO_LOGD("Set Device_%s ok,Start Uart txAndRx\n",DEVICE_UART_AT_INIT);
++
++	/* Wait for the result of encipher card from CP*/
++	setProp("debug.read.card.status","0",10);
++	//enumRlt = queryEncipherCardStatus(UartFd_INIT);
++	enumRlt=ENCIPHER_CARD_START_SUCC;
++	switch(enumRlt)
++	{
++		case ENCIPHER_CARD_INVALID:
++			setProp("debug.read.card.status","1",10);
++			break;
++		case ENCIPHER_CARD_MACHINE_ERROR:
++			setProp("debug.read.card.status","2",10);
++			break;
++		case ENCIPHER_CARD_PWD_DESTROYED:
++			setProp("debug.read.card.status","5",10);
++                        break;
++		case ENCIPHER_CARD_NO_POWERON_STICK:
++			setProp("debug.read.card.status","4",10);
++			break;
++		case ENCIPHER_CARD_START_SUCC:
++			setProp("debug.read.card.status","7",10);
++			break;
++	}
++
++
++	//querySIMCardStart(UartFd_INIT);
++	/* close the uart device and let the authority to module*/
++	close(UartFd_INIT);
++	return 0;
++}
++
++//==================================================================================
++//Hwa SAT End
++//==================================================================================
++
+ int main( int argc, char *argv[] ) {
+     int     i = 0;
+     char    atCmd[256] = "";
+@@ -2385,7 +2867,23 @@
+     char    propValue[PROP_VALUE_MAX] = "";
+ 
+     RLOGD("Build time: %s %s", __DATE__, __TIME__);
++	/* Convert the property of "(U)SIM/standby/communication" from "persist.sys." to "ro." */
++	convertSSC();
+ 
++	if ( modemType == MODEM_TYPE_DEBUG) {
++		startService("init.svc.emsd","emsd");        
++		stopService("init.svc.MUX001","MUX001"); 
++		setProp("persist.sys.usb.config","debug_tt",10);
++		RADIO_LOGD("ModeType=====>MODEM_TYPE_DEBUG done, radio_config sleep.");
++	} else {
++
++		getProp("persist.sys.usb.config", propValue, "mtp,adb");
++		if (0 == strcmp(propValue, "debug_tt")) {
++			setProp("persist.sys.usb.config","mtp,adb",10);
++		}
++		if(modemType == MODEM_TYPE_LTE) {
++			startService("init.svc.emsd","emsd");
++
+     /* Get the info that if user set the RAT manually(using APP LC_Assistant). */
+     getProp(PROPERTY_PERSIST_SYS_LC_MANUAL_MODE, propValue, "0");
+     if(propValue[0] == '1') {
+@@ -2400,9 +2898,6 @@
+ 
+     readSavedCardInfo(&saved_card_info_st);
+ 
+-    /* Convert the property of "(U)SIM/standby/communication" from "persist.sys." to "ro." */
+-    convertSSC();
+-
+     /* It must be called after convertSSC() since it needs "standbyCount". */
+     //stopRildService();
+ 
+@@ -2440,11 +2935,40 @@
+     deinitAtDevice(0);
+ 
+     startRildService();
++			RADIO_LOGD("ModeType=====>MODEM_TYPE_LTE done, radio_config sleep.");
++		} else if(modemType == MODEM_TYPE_SAT) {
++        		//setProp("persist.sys.hyt.codec.r12", "1", 3);
++			networkModel = 3;
++			updateMncCscc();
+ 
++			convertDual2Single();
++			//convertDynamicRat();
++			isDynamicRat = 0;
++
++			//initSatAtDevice();	
++			deinitSatAtDevice();
++            //#define TTL_FOR_NOT_START_EMSD 
++#ifndef TTL_FOR_NOT_START_EMSD
++			startService("init.svc.emsd","emsd");
++#endif
++			startService("init.svc.MUX001","MUX001");
++
++            queryCardInfo(fdAt[1], 1, &current_sim_card_info_st[1]);
++            
++			getProp(PROPERTY_PERSIST_SYS_LC_CHECK_IMEI, propValue, "1");
++			if ('1' == propValue[0]) {
++        		setProp(PROPERTY_PERSIST_SYS_LC_CHECK_IMEI, "0", 3);
++    			}
++			startSatRildService();
++			RADIO_LOGD("ModeType=====>MODEM_TYPE_SAT done, radio_config sleep.");
++		} else {
++			RADIO_LOGE("Unkown ModeType, radio_config sleep.");
++		}
++	}
++
+     while(1) {
+         sleep(0x00ffffff);
+     }
+-
+     return 0;
+ }
+ 
+Index: leadcore/service/lc-oms-serv/lc-oms-mla/lc-oms-mla/mla/mla-handle.c
+===================================================================
+--- leadcore/service/lc-oms-serv/lc-oms-mla/lc-oms-mla/mla/mla-handle.c	(版本 8)
++++ leadcore/service/lc-oms-serv/lc-oms-mla/lc-oms-mla/mla/mla-handle.c	(版本 11)
+@@ -197,6 +197,75 @@
+ 
+     return ret_val;
+ }
++
++void set_serial_dev_attr_2( int fd )
++{
++        int ret_val = 0;
++        struct termios  ios;
++        speed_t speed = B115200;
++    
++        ret_val = tcgetattr( fd, &ios );
++        //CHECK_SYS_ERR( ret_val, "tcgetattr" );
++    
++        /* Set the baudrate. */
++        if( !ret_val )
++        {
++            ret_val = cfsetispeed( &ios, speed );
++            //CHECK_SYS_ERR( ret_val, "cfsetispeed" );
++            RLOGD("set_serial_dev_attr(),cfsetispeed OK\n");
++        }
++        if( !ret_val)
++        {
++            ret_val = cfsetospeed( &ios, speed );
++            //CHECK_SYS_ERR( ret_val, "cfsetospeed" );
++            RLOGD("set_serial_dev_attr(), cfsetospeed OK\n");
++        }
++    
++        ios.c_iflag &= ~INLCR;  /* do not change '\n' to '\r' */
++        ios.c_iflag &= ~ICRNL;  /* do not change '\r' to '\n' */
++        ios.c_iflag &= ~IXON;   /* disable start/stop output control */
++        ios.c_lflag = 0;        /* disable ECHO, ICANON, etc... */
++        ios.c_oflag &= ~ONLCR;  /* do not change '\n' to '\r' '\n' */
++        ios.c_oflag &= ~OCRNL;  /* do not change '\n' to '\r' */
++        /* BEGIN: Added for PN:s_project */
++        ios.c_cflag &= ~CSIZE;
++        ios.c_cflag |= CS8;     
++        ios.c_cflag &= ~PARENB;    /* Clear parity enable */
++        ios.c_iflag &= ~INPCK;    /* Enable parity checking */     
++        ios.c_cflag &= ~CSTOPB;     
++#if 1//xqf
++        ios.c_cflag |= CRTSCTS;                     /* enable the RTS/CTS flow control */
++#else
++        ios.c_cflag &= ~CRTSCTS;                    /* disable the RTS/CTS flow control */
++#endif
++        tcflush(fd, TCIFLUSH);
++        /* END:  Added for PN:s_project */
++        if( !ret_val)
++        {
++            ret_val = tcsetattr( fd, TCSANOW, &ios );
++            RLOGD("set_serial_dev_attr() ,tcsetattr OK\n");
++            //CHECK_SYS_ERR( ret_val, "tcsetattr" );
++        }
++    
++        //SetSpeed(fd, 115200);
++        //SetParity(fd, 8, 1, 'N',0);
++        //DisableEcho(fd);
++	#if 0 
++        struct termios  ios;
++        tcgetattr( fd, &ios );
++        ios.c_lflag = 0;  /* disable ECHO, ICANON, etc... */
++        ios.c_cflag = CRTSCTS| CS8|CREAD|CLOCAL;
++    
++        /* add by zhaohehui 2015.10.20 start*/
++        ios.c_iflag &= ~ICRNL;  /* disable ''/r' to '/n' */
++        ios.c_iflag &= ~INLCR;   /* disable  '/n''to'/r' */ 
++        /* add by zhaohehui 2015.10.20 end*/
++                    
++        cfsetispeed(&ios, B115200);
++        cfsetospeed(&ios, B115200);
++        tcsetattr( fd, TCSANOW, &ios ); 
++	#endif
++}
+ void upnetworkcard(int cid)
+ {
+ 							char sys_cmd[128] = {0};
+@@ -906,9 +975,9 @@
+             pub_util_print_data( "PC -> Modem", (UINT8 *)pc_2_modem_buf_ptr, (UINT32)read_len, TRUE, TRUE );
+ #endif
+ 
+-#ifdef OPT_LOG_MLA_DATA_INFO
++//#ifdef OPT_LOG_MLA_DATA_INFO
+             LOG_INFO(("receive %ld bytes from PC\n", read_len));
+-#endif
++//#endif
+ 
+ //        LOG_INFO(("persist.sys.modem.autotest is on modem_autotest=%d",modem_autotest));
+         if(is_modemtestmode)
+@@ -1195,6 +1264,11 @@
+ 
+                     LOG_INFO(("device(%s) to Modem is valid", dev_modem_ptr));
+                     ret_val = ERR_NONE;
++
++					//zkj add
++                    if( (0 == strcmp(dev_modem_ptr, "/dev/ttyS0")) || (0 == strcmp(dev_modem_ptr, "/dev/ttyS1")))
++                        set_serial_dev_attr_2(fd_modem);
++				
+                     break;
+                 }
+                 else
+Index: leadcore/third-packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java
+===================================================================
+--- leadcore/third-packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java	(版本 8)
++++ leadcore/third-packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java	(版本 11)
+@@ -4281,7 +4281,7 @@
+ 
+             case REQUEST_CODE_ECM_EXIT_DIALOG:
+                 boolean outOfEmergencyMode = data.getBooleanExtra(EXIT_ECM_RESULT, false);
+-                if (outOfEmergencyMode) {
++				if (outOfEmergencyMode) {
+                     sendMessage(false);
+                 }
+                 break;
+@@ -5757,7 +5757,7 @@
+         // Check if airplane mode is on or not
+         final boolean isAirplaneModeOn = Settings.System.getInt(getContentResolver(),
+                 Settings.System.AIRPLANE_MODE_ON, 0) != 0;
+-        if (isAirplaneModeOn) {
++		if (isAirplaneModeOn) {
+             Toast.makeText(this, getString(R.string.toast_in_airplane_mode), Toast.LENGTH_SHORT)
+                     .show();
+         }
+Index: leadcore/third-packages/apps/Mms/src/com/android/mms/transaction/SmsReceiverService.java
+===================================================================
+--- leadcore/third-packages/apps/Mms/src/com/android/mms/transaction/SmsReceiverService.java	(版本 8)
++++ leadcore/third-packages/apps/Mms/src/com/android/mms/transaction/SmsReceiverService.java	(版本 11)
+@@ -307,10 +307,23 @@
+     private void handleSendMessage(Intent intent) {
+         int linkId = intent.getIntExtra(MSms.LINK_ID,
+                 MultiSimUtility.getDefaultLinkIdMSMS(getApplicationContext()));
+-        if (!mSending[linkId]) {
+-            sendFirstQueuedMessage(linkId);
+-        }
+-    }
++		
++		Log.e(TAG, "handleSendMessage: " + linkId);
++		/* BEGIN: Modified for PN:h_project double modem single standby */
++		if ( TelephonyManager.getModemType() == 0 || TelephonyManager.getModemType() == 1 )
++		{
++			if (!mSending[0]) {
++				sendFirstQueuedMessage(0);
++				}
++		}
++		else if ( TelephonyManager.getModemType() < 0 )
++		{
++			if (!mSending[linkId]) {
++				sendFirstQueuedMessage(linkId);
++				}
++		}
++		/* END:	Modified for PN:h_project double modem single standby */  
++	}
+ 
+     private void handleSendInactiveMessage() {
+         // Inactive messages includes all messages in outbox and queued box.
+Index: leadcore/third-packages/apps/Mms/src/com/android/mms/transaction/SmsMessageSender.java
+===================================================================
+--- leadcore/third-packages/apps/Mms/src/com/android/mms/transaction/SmsMessageSender.java	(版本 8)
++++ leadcore/third-packages/apps/Mms/src/com/android/mms/transaction/SmsMessageSender.java	(版本 11)
+@@ -85,6 +85,7 @@
+     }
+ 
+     private boolean queueMessage(long token) throws MmsException {
++		Log.v(TAG, "TTL_sendMessage msgTxt=" + mMessageText + ",dst=" + mNumberOfDests);
+         if ((mMessageText == null) || (mNumberOfDests == 0)) {
+             // Don't try to send an empty message.
+             throw new MmsException("Null message body or dest.");
+@@ -124,10 +125,12 @@
+             }
+         }
+ 
++		Log.v(TAG, "TTL_sendMessage mContext=" + mContext);
+         // Notify the SmsReceiverService to send the message out
+         Intent intent = new Intent(SmsReceiverService.ACTION_SEND_MESSAGE, null, mContext,
+                 SmsReceiver.class);
+         intent.putExtra(MSms.LINK_ID, mLinkId);
++		Log.v(TAG, "TTL_sendMessage intent=" + intent + " mLinkId=" + mLinkId);
+         mContext.sendBroadcast(intent);
+         return false;
+     }
+Index: leadcore/third-packages/apps/Mms/src/com/android/mms/transaction/SmsSingleRecipientSender.java
+===================================================================
+--- leadcore/third-packages/apps/Mms/src/com/android/mms/transaction/SmsSingleRecipientSender.java	(版本 8)
++++ leadcore/third-packages/apps/Mms/src/com/android/mms/transaction/SmsSingleRecipientSender.java	(版本 11)
+@@ -132,14 +132,17 @@
+             int smsValidityPeriod = MessagingPreferenceActivity.getSmsValidityPeriod(mContext,
+                     mLinkId);
+             if (smsValidityPeriod == MessagingPreferenceActivity.SMS_VALIDITY_DEFAULT_VALUE) {
++                Log.v(TAG, "TTL_sendMessage_X");
+                 smsManager.sendMultipartTextMessageMSMS(mDest, mServiceCenter, messages,
+                         sentIntents, deliveryIntents, mLinkId);
+             } else if (messageCount == 1) {
++                Log.v(TAG, "TTL_sendMessage_Y");
+                 SubmitPdu pdus = SmsMessage.getSubmitPdu(mServiceCenter, mDest, messages.get(0),
+                         (deliveryIntents.get(0) != null), smsValidityPeriod);
+                 smsManager.sendRawPduMSMS(pdus.encodedScAddress, pdus.encodedMessage,
+                         sentIntents.get(0), deliveryIntents.get(0), mDest, mLinkId);
+             } else if (messageCount > 1) {
++                Log.v(TAG, "TTL_sendMessage_Z");
+                  sendMultiTextWithValidity(mDest, mServiceCenter, messages, smsValidityPeriod,
+                         sentIntents, deliveryIntents, mLinkId);
+             }
+Index: leadcore/third-packages/apps/Mms/src/com/android/mms/data/WorkingMessage.java
+===================================================================
+--- leadcore/third-packages/apps/Mms/src/com/android/mms/data/WorkingMessage.java	(版本 8)
++++ leadcore/third-packages/apps/Mms/src/com/android/mms/data/WorkingMessage.java	(版本 11)
+@@ -1451,7 +1451,7 @@
+     private void preSendSmsWorker(Conversation conv, String msgText, String recipientsInUI) {
+         // If user tries to send the message, it's a signal the inputted text is what they wanted.
+         UserHappinessSignals.userAcceptedImeText(mActivity);
+-
++		
+         mStatusListener.onPreMessageSent();
+ 
+         long origThreadId = conv.getThreadId();
+@@ -1461,6 +1461,9 @@
+ 
+         String semiSepRecipients = conv.getRecipients().serialize();
+ 
++		LogTag.debug("TTL_preSendSmsWorker " + origThreadId +
++				" threadId: " + threadId);
++
+         // recipientsInUI can be empty when the user types in a number and hits send
+         if (LogTag.SEVERE_WARNING && ((origThreadId != 0 && origThreadId != threadId) ||
+                (!semiSepRecipients.equals(recipientsInUI) && !TextUtils.isEmpty(recipientsInUI)))) {
+@@ -1477,7 +1480,12 @@
+ 
+             // Just interrupt the process of sending message if recipient mismatch
+             LogTag.warnPossibleRecipientMismatch(msg, mActivity);
++					
++			LogTag.debug("TTL_preSendSmsWorker_1 ");
++					
+         }else {
++        
++			LogTag.debug("TTL_preSendSmsWorker_2 ");
+             // just do a regular send. We're already on a non-ui thread so no need to fire
+             // off another thread to do this work.
+             sendSmsWorker(msgText, semiSepRecipients, threadId);
+@@ -1497,12 +1505,15 @@
+                     semiSepRecipients + ", threadId=" + threadId);
+         }
+ 
++		LogTag.debug("TTL_sendSmsWorker_M ");
+         try {
+             MessageSender sender = new SmsMessageSender(mActivity, dests, msgText,
+                         threadId, mCurrentConvLinkId);
+             if (mScheduleTime == 0) {
++				LogTag.debug("TTL_sendSmsWorker_M_1 ");
+                 sender.sendMessage(threadId);
+             } else {
++				LogTag.debug("TTL_sendSmsWorker_M_2 ");
+                 sender.sendMessageOnSchedule(threadId, mScheduleTime);
+                 mScheduleTime = 0;
+             }
+@@ -1510,6 +1521,7 @@
+             // Make sure this thread isn't over the limits in message count
+             Recycler.getSmsRecycler().deleteOldMessagesByThreadId(mActivity, threadId);
+         } catch (Exception e) {
++			LogTag.debug("TTL_sendSmsWorker_M_1_3 ");
+             Log.e(TAG, "Failed to send SMS message, threadId=" + threadId, e);
+         }
+ 
+Index: leadcore/third-packages/apps/Settings/src/com/android/settings/DataUsageSummary.java
+===================================================================
+--- leadcore/third-packages/apps/Settings/src/com/android/settings/DataUsageSummary.java	(版本 8)
++++ leadcore/third-packages/apps/Settings/src/com/android/settings/DataUsageSummary.java	(版本 11)
+@@ -2548,8 +2548,8 @@
+                 simState = tele.getSimState();
+             }
+         }
++		
+         if (simState == SIM_STATE_READY) {
+-            Log.d(TAG, "linkId :" + sub + " SIM state: " + simState);
+             if (mPolicyEditor.hasLimitedPolicy(buildTemplateMobileAll(subscriberId))) {
+                 limited.add(getText(R.string.data_usage_list_mobile));
+             }
+Index: leadcore/third-packages/apps/Settings/src/com/android/settings/WirelessSettings.java
+===================================================================
+--- leadcore/third-packages/apps/Settings/src/com/android/settings/WirelessSettings.java	(版本 8)
++++ leadcore/third-packages/apps/Settings/src/com/android/settings/WirelessSettings.java	(版本 11)
+@@ -33,6 +33,8 @@
+ import android.net.NetworkInfo;
+ import android.nfc.NfcAdapter;
+ import android.os.Bundle;
++import android.os.Looper;
++import android.os.PowerManager;
+ import android.os.SystemProperties;
+ import android.os.UserHandle;
+ import android.preference.CheckBoxPreference;
+@@ -43,6 +45,7 @@
+ import android.telephony.TelephonyManager;
+ import android.text.TextUtils;
+ import android.util.Log;
++import android.widget.Toast;
+ 
+ import com.android.internal.telephony.SmsApplication;
+ import com.android.internal.telephony.SmsApplication.SmsApplicationData;
+@@ -50,6 +53,11 @@
+ import com.android.internal.telephony.TelephonyProperties;
+ import com.android.settings.nfc.NfcEnabler;
+ 
++import java.io.BufferedReader;
++import java.io.BufferedWriter;
++import java.io.FileReader;
++import java.io.FileWriter;
++import java.io.IOException;
+ import java.util.Collection;
+ 
+ public class WirelessSettings extends RestrictedSettingsFragment
+@@ -466,7 +474,7 @@
+             SmsApplication.setDefaultApplication(newValue.toString(), getActivity());
+             updateSmsApplicationSetting();
+             return true;
+-        }
+-        return false;
+-    }
++		}
++		return false;
++	}
+ }
+Index: leadcore/third-packages/apps/Settings/res/values-zh-rCN/strings.xml
+===================================================================
+--- leadcore/third-packages/apps/Settings/res/values-zh-rCN/strings.xml	(版本 8)
++++ leadcore/third-packages/apps/Settings/res/values-zh-rCN/strings.xml	(版本 11)
+@@ -2252,4 +2252,15 @@
+     <string name="airplane_wifi_warning_msg">正在飞行模式下，可以手动开启WLAN</string>
+     <string name="cmcc_warning_msg">已连接中国移动WLAN，继续使用有可能产生WLAN流量费用</string>
+     <string name="connect_cmcc_title">使用CMCC WLAN时提示</string>
++	
++	<string name="network_mode">设置网络模式</string>
++    <string name="network_mode_satellite">卫通</string>
++    <string name="network_mode_lte">LTE</string>
++    <string name="network_mode_startup_select">测试模式-透传</string>
++    <string name="system_restart">系统即將重启</string>
++    
++    <string name="select_netmode">选择模式</string>
++    <string name="current_net_mode">当前模式</string>
++    <string name="set_net_modes">设置网络模式</string>
++
+ </resources>
+Index: leadcore/third-packages/apps/Settings/res/values-zh-rCN/arrays.xml
+===================================================================
+--- leadcore/third-packages/apps/Settings/res/values-zh-rCN/arrays.xml	(版本 8)
++++ leadcore/third-packages/apps/Settings/res/values-zh-rCN/arrays.xml	(版本 11)
+@@ -500,4 +500,15 @@
+   </string-array>
+   <!-- Add for cmcc feature end -->
+ 
++  <string-array name="net_mode_select">
++    <item>LTE 模式</item>
++    <item>卫通模式</item>
++    <item>测试模式-透传</item>
++  </string-array>
++    <string-array name="net_mode_select_value">
++    <item>0</item>
++    <item>1</item>
++    <item>4</item>
++  </string-array>
++
+ </resources>
+Index: leadcore/third-packages/apps/Settings/res/xml/settings_headers.xml
+===================================================================
+--- leadcore/third-packages/apps/Settings/res/xml/settings_headers.xml	(版本 8)
++++ leadcore/third-packages/apps/Settings/res/xml/settings_headers.xml	(版本 11)
+@@ -36,6 +36,14 @@
+         android:title="@string/bluetooth_settings_title"
+         android:icon="@drawable/ic_settings_bluetooth2" />
+ 
++    <!-- Newwork Mode -->   
++	<header
++		android:id="@+id/network_mode_settings"
++		android:icon="@drawable/ic_settings_cardsetting"
++		android:fragment="com.android.settings.NetworkModeSettings"
++		android:title="@string/network_mode">
++	</header>
++	
+     <!-- Data Usage -->
+     <header
+         android:id="@+id/data_usage_settings"
+Index: leadcore/third-packages/apps/Settings/res/values/strings.xml
+===================================================================
+--- leadcore/third-packages/apps/Settings/res/values/strings.xml	(版本 8)
++++ leadcore/third-packages/apps/Settings/res/values/strings.xml	(版本 11)
+@@ -5123,4 +5123,10 @@
+     <string name="airplane_wifi_warning_msg">In Airplane mode you can manually open the WLAN</string>
+     <string name="cmcc_warning_msg">Attation, ChinaMobile WLAN is connected, may charge your fees.</string>
+     <string name="connect_cmcc_title">Toast when using cmcc</string>
++    
++    <string name="set_netmode">NetMode Settings</string>
++    <string name="lte_mode">LTE MODE</string>
++    <string name="s_mode">S-MODE</string>
++    <string name="select_netmode">Please Choose NetMode</string>
++    <string name="system_restart">System will restart!</string>
+ </resources>

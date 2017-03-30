@@ -1,0 +1,147 @@
+;
+;********************************************************************************************************
+;                                    EXCEPTION VECTORS & STARTUP CODE
+;
+; File      : cstartup.s
+; For       : ARM7 or ARM9
+; Toolchain : IAR EWARM V4.40 and higher
+;********************************************************************************************************
+;
+    
+;********************************************************************************************************
+;                                           MACROS AND DEFINIITIONS
+;********************************************************************************************************
+
+                                ; Mode, correspords to bits 0-5 in CPSR
+MODE_BITS   DEFINE  0x1F        ; Bit mask for mode bits in CPSR
+USR_MODE    DEFINE  0x10        ; User mode
+FIQ_MODE    DEFINE  0x11        ; Fast Interrupt Request mode
+IRQ_MODE    DEFINE  0x12        ; Interrupt Request mode
+SVC_MODE    DEFINE  0x13        ; Supervisor mode
+ABT_MODE    DEFINE  0x17        ; Abort mode
+UND_MODE    DEFINE  0x1B        ; Undefined Instruction mode
+SYS_MODE    DEFINE  0x1F        ; System mode
+    
+
+;********************************************************************************************************
+;                                            ARM EXCEPTION VECTORS
+;********************************************************************************************************
+
+    MODULE  ?RESET
+    COMMON  INTVEC:CODE:NOROOT(2)
+    PUBLIC  __program_start
+    EXTERN  ?cstartup
+
+    IMPORT  OS_CPU_ARM_ExceptUndefInstrHndlr
+    IMPORT  OS_CPU_ARM_ExceptSwiHndlr
+    IMPORT  OS_CPU_ARM_ExceptPrefetchAbortHndlr
+    IMPORT  OS_CPU_ARM_ExceptDataAbortHndlr
+    IMPORT  OS_CPU_ARM_ExceptIrqHndlr
+    IMPORT  OS_CPU_ARM_ExceptFiqHndlr
+
+    CODE32
+
+    ORG     0x00
+__program_start:
+    LDR     PC, [PC,#24]    ; Absolute jump can reach 4 GByte
+    ORG     0x04
+    LDR     PC, [PC,#24]    ; Branch to undef_handler
+    ORG     0x08
+    LDR     PC, [PC,#24]    ; Branch to swi_handler
+    ORG     0x0C
+    LDR     PC, [PC,#24]    ; Branch to prefetch_handler
+    ORG     0x10
+    LDR     PC, [PC,#24]    ; Branch to data_handler
+    ORG     0x18
+    LDR     PC, [PC,#24]    ; Branch to irq_handler
+    ORG     0x1C
+    LDR     PC, [PC,#24]    ; Branch to fiq_handler
+
+
+    ORG     0x20
+    DC32    ?cstartup
+    ORG     0x24
+    DC32    OS_CPU_ARM_ExceptUndefInstrHndlr
+    ORG     0x28
+    DC32    OS_CPU_ARM_ExceptSwiHndlr
+    ORG     0x2C
+    DC32    OS_CPU_ARM_ExceptPrefetchAbortHndlr
+    ORG     0x30
+    DC32    OS_CPU_ARM_ExceptDataAbortHndlr
+    ORG     0x38
+    DC32    OS_CPU_ARM_ExceptIrqHndlr
+    ORG     0x3C
+    DC32    OS_CPU_ARM_ExceptFiqHndlr
+
+    ENDMOD
+
+;********************************************************************************************************
+;                                   LOW-LEVEL INITIALIZATION
+;********************************************************************************************************
+    MODULE  ?CSTARTUP
+
+    RSEG    IRQ_STACK:DATA(2)
+    RSEG    ABT_STACK:DATA:NOROOT(2)
+    RSEG    UND_STACK:DATA:NOROOT(2)
+    RSEG    FIQ_STACK:DATA:NOROOT(2)
+    RSEG    SVC_STACK:DATA:NOROOT(2)
+    RSEG    CSTACK:DATA(2)
+    RSEG    ICODE:CODE:NOROOT(2)
+
+    PUBLIC  ?cstartup
+    EXTERN  ?main
+    CODE32
+
+?cstartup
+
+;********************************************************************************************************
+;                                    STACK POINTER INITIALIZATION
+;********************************************************************************************************
+
+    MRS     r0,cpsr                             ; Original PSR value
+    BIC     r0,r0,#MODE_BITS                    ; Clear the mode bits
+    ORR     r0,r0,#IRQ_MODE                     ; Set IRQ mode bits
+    MSR     cpsr_c,r0                           ; Change the mode
+    LDR     sp,=SFE(IRQ_STACK) & 0xFFFFFFF8     ; End of IRQ_STACK
+
+    BIC     r0,r0,#MODE_BITS                    ; Clear the mode bits
+    ORR     r0,r0,#ABT_MODE                     ; Set ABT mode bits
+    MSR     cpsr_c,r0                           ; Change the mode
+    LDR     sp,=SFE(ABT_STACK) & 0xFFFFFFF8     ; End of ABT_STACK
+
+    BIC     r0,r0,#MODE_BITS                    ; Clear the mode bits
+    ORR     r0,r0,#SVC_MODE                     ; Set SVC mode bits
+    MSR     cpsr_c,r0                           ; Change the mode
+    LDR     sp,=SFE(SVC_STACK) & 0xFFFFFFF8     ; End of SVC_STACK
+
+    BIC     r0,r0,#MODE_BITS                    ; Clear the mode bits
+    ORR     r0,r0,#UND_MODE                     ; Set UND mode bits
+    MSR     cpsr_c,r0                           ; Change the mode
+    LDR     sp,=SFE(UND_STACK) & 0xFFFFFFF8     ; End of UND_STACK
+
+    BIC     r0,r0,#MODE_BITS                    ; Clear the mode bits
+    ORR     r0,r0,#FIQ_MODE                     ; Set FIQ mode bits
+    MSR     cpsr_c,r0                           ; Change the mode
+    LDR     sp,=SFE(FIQ_STACK) & 0xFFFFFFF8     ; End of FIQ_STACK
+
+    BIC     r0,r0,#MODE_BITS                    ; Clear the mode bits
+    ORR     r0,r0,#SYS_MODE                     ; Set System mode bits
+    MSR     cpsr_c,r0                           ; Change the mode
+    LDR     sp,=SFE(CSTACK) & 0xFFFFFFF8        ; End of CSTACK
+
+
+;********************************************************************************************************
+;                                   ADDITIONAL INITIALIZATION
+;********************************************************************************************************
+
+
+;********************************************************************************************************
+;                           CONTINUE TO ?main FOR ADDITIONAL INITIALIZATION
+;********************************************************************************************************
+
+    LDR     r0,=?main
+    BX      r0
+
+    LTORG
+    ENDMOD
+    END
