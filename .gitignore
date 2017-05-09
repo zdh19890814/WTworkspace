@@ -1,0 +1,15 @@
+# ignore on WT_Workspace
+# ignore middle link file
+
+*.[oad]
+!lib.a
+
+
+#ignore bak file
+*~
+*.bak
+
+
+
+/TODO
+
