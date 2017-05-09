@@ -1,7 +1,9 @@
 # ignore on WT_Workspace
 # ignore middle link file
 
-*.[oad]
+*.o
+*.a
+*.d
 !lib.a
 
 
@@ -11,5 +13,5 @@
 
 
 
-/TODO
+
 
